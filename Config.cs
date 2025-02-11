@@ -13,14 +13,19 @@ class Config {
 	public static string outputSuffix = " out";
 	public static string outputExtension = ".webm";
 	public static bool overwrite = true;
+	public static bool simulate = false;
 	#endregion
 
 	#region Video options
 	public static string videoEncoder = "libvpx-vp9";
+	public static string videoBitrate = "160KiB";
+	public static int? quality = 21;
+	public static int speed = 1;
 	#endregion
 
 	#region Audio options
 	public static string audioEncoder = "libopus";
+	public static string audioBitrate = "128Ki";
 	#endregion
 
 	#region CPU options
@@ -50,14 +55,19 @@ class Config {
 		{ nameof(outputSuffix), suffix => outputSuffix = suffix },
 		{ nameof(outputExtension), extension => outputExtension = extension == "" ? "" : "." + extension },
 		{ nameof(overwrite), value => overwrite = value == "true" },
+		{ nameof(simulate), value => simulate = value == "true" },
 		#endregion
 
 		#region Video options
 		{ nameof(videoEncoder), name => videoEncoder = name },
+		{ nameof(videoBitrate), value => videoBitrate = value },
+		{ nameof(quality), value => quality = value == "" ? null : int.Parse(value) },
+		{ nameof(speed), value => speed = int.Parse(value) },
 		#endregion
 
 		#region Audio options
 		{ nameof(audioEncoder), name => audioEncoder = name },
+		{ nameof(audioBitrate), value => audioBitrate = value },
 		#endregion
 
 		#region CPU options

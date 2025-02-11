@@ -7,66 +7,114 @@ static class Program {
 	static void Main(string[] args) {
 		Environment.CurrentDirectory = Path.GetDirectoryName(Environment.ProcessPath)!;
 
-		//If the first argument is a config file, use it as an override and remove it from the arguments
-		if (args.Length > 0) {
-			FileInfo file = new(args[0]);
+		//If any arguments are config files, use them as overrides and remove them from the arguments
+		List<string> argList = new(args.Length);
+		foreach (string arg in args) {
+			FileInfo file = new(arg);
 			if (file.Exists && file.Extension == ".cfg") {
 				Config.Override(file);
-				args = args[1..];
+			} else {
+				argList.Add(arg);
 			}
 		}
 
 		//The remaining argments are expected to be input media files
-		if (args.Length > 0) {
-			Config.ReplaceInputFiles(args);
+		if (argList.Count > 0) {
+			Config.ReplaceInputFiles([.. argList]);
 		}
 
 		foreach (FileInfo input in Config.inputFiles) {
-			//Global options
-			List<string> arguments = [ "-hide_banner" ];
-			if (Config.overwrite) {
-				arguments.Add("-y");
-			}
+			Encode encode = new();
 
-			//Input options
+			#region Global options
+			encode.Add("hide_banner");
+			if (Config.overwrite) {
+				encode.Add("-y");
+			}
+			#endregion
+
+			#region Input options
+			#endregion
 
 			//Input file
-			arguments.Add("-i");
-			arguments.Add(input.FullName);
+			encode.Add("i", input.FullName);
 
-			//Output options
+			#region Output options
+			//Video options
 			if (Config.videoEncoder == "") {
-				arguments.Add("-vn");
+				encode.Add("-vn");
 			} else {
-				arguments.Add("-c:v");
-				arguments.Add(Config.videoEncoder);
+				encode.Add("c:v", Config.videoEncoder);
+
+				if (Config.quality is null) {
+					encode.Add("b:v", Config.videoBitrate);
+				} else {
+					if (Config.videoEncoder == "libvvenc") {
+						encode.Add("qp", Config.quality.ToString()!);
+					} else {
+						encode.Add("crf", Config.quality.ToString()!);
+					}
+
+					if (Config.videoEncoder == "libvpx-vp9") {
+						encode.Add("b:v", "0");
+					}
+				}
 			}
 
+			if (Config.videoEncoder == "libvpx-vp9" || Config.videoEncoder == "libaom-av1") {
+				encode.Add("cpu-used", Config.speed.ToString());
+			} else if (Config.videoEncoder == "libsvtav1") {
+				encode.Add("preset", Config.speed.ToString());
+			} else if (Config.videoEncoder == "libx265" || Config.videoEncoder == "libx264") {
+				encode.Add("preset", (9 - Config.speed).ToString());
+			} else if (Config.videoEncoder == "libvvenc") {
+				encode.Add("preset", (4 - Config.speed).ToString());
+			} else {
+				encode.Add("preset", Config.speed.ToString());
+			}
+
+			//Audio options
 			if (Config.audioEncoder == "") {
-				arguments.Add("-an");
+				encode.Add("-an");
 			} else {
-				arguments.Add("-c:a");
-				arguments.Add(Config.audioEncoder);
+				encode.Add("c:a", Config.audioEncoder);
+				if (Config.audioEncoder != "copy") {
+					encode.Add("b:a", Config.audioBitrate);
+				}
 			}
 
-			//Output file
+			if (Config.audioEncoder == "libopus") {
+				encode.Add("frame_duration", "60");
+			} else if (Config.audioEncoder == "flac") {
+				encode.Add("compression_level", "12");
+			} else if (Config.audioEncoder == "libmp3lame") {
+				encode.Add("abr", "1");
+				encode.Add("compression_level", "0");
+			}
+			#endregion
+
+			#region Output file
 			if (Config.outputDirectory is not null) {
 				if (Config.createDirectoryIfNeeded) {
 					Config.outputDirectory.Create();
 				} else if (!Config.outputDirectory.Exists) {
-					throw new Exception("Output directory does not exist");
+					throw new Exception($"Output directory {Config.outputDirectory.FullName} does not exist");
 				}
 			}
 			FileInfo output = new($"{(Config.outputDirectory ?? input.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(input.Name)}{Config.outputSuffix}{Config.outputExtension}");
 			if (Array.Exists(Config.inputFiles, input => input.FullName == output.FullName)) {
-				throw new Exception("Output would overwrite an input file");
+				throw new Exception($"{output.Name} would overwrite an input file");
 			}
-			arguments.Add(output.FullName);
+			encode.outFile = output.FullName;
+			#endregion
 
-			Console.WriteLine(Config.ffmpeg.FullName + ' ' + string.Join(' ', arguments));
-			ProcessStartInfo startInfo = new(Config.ffmpeg.FullName, arguments);
-			//Console.WriteLine(Config.ffmpeg.FullName + ' ' + startInfo.Arguments);
-			//continue;
+			#region Process
+			if (Config.simulate) {
+				Console.WriteLine(encode);
+				continue;
+			}
+
+			ProcessStartInfo startInfo = new(Config.ffmpeg.FullName, encode.GetArguments());
 			Process ffmpegProcess = Process.Start(startInfo)!;
 			ffmpegProcess.PriorityClass = Config.priority;
 			if (Config.cpuAffinity != 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())) {
@@ -74,6 +122,7 @@ static class Program {
 			}
 			//TODO: Track the conversion process and update the output (including the ETA)
 			ffmpegProcess.WaitForExit();
+			#endregion
 		}
 	}
 }
