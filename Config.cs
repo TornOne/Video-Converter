@@ -21,6 +21,7 @@ class Config {
 	public static string videoBitrate = "160KiB";
 	public static int? quality = 21;
 	public static int speed = 1;
+	public static bool twoPass = true;
 	#endregion
 
 	#region Audio options
@@ -63,6 +64,7 @@ class Config {
 		{ nameof(videoBitrate), value => videoBitrate = value },
 		{ nameof(quality), value => quality = value == "" ? null : int.Parse(value) },
 		{ nameof(speed), value => speed = int.Parse(value) },
+		{ nameof(twoPass), value => twoPass = value == "true" },
 		#endregion
 
 		#region Audio options
