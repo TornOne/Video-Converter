@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using static Constants;
 
@@ -25,115 +24,142 @@ static class Program {
 		}
 
 		foreach (FileInfo input in Config.inputFiles) {
-			Encode encode = new();
+			Convert(input);
+		}
+	}
 
-			#region Global options
-			encode.Add("hide_banner");
-			if (Config.overwrite) {
-				encode.Add("y");
-			}
-			#endregion
+	static void Convert(FileInfo input) {
+		Encode encode = new();
+		Encode.ArgList outArgs = encode.outputArgs;
 
-			#region Input options
-			#endregion
+		if (Config.overwrite) {
+			encode.globalArgs.Add("y");
+		}
 
-			//Input file
-			encode.Add("i", input.FullName);
+		encode.AddInput(input.FullName);
 
-			#region Filter options
-			#endregion
+		#region Filter options
+		#endregion
 
-			#region Video options
-			if (Config.videoEncoder == "") {
-				encode.Add("vn");
+		#region Video options
+		if (Config.videoEncoder == "") {
+			outArgs.Add("vn");
+		} else {
+			outArgs.Add("c:v", Config.videoEncoder);
+
+			if (Config.quality is null) {
+				outArgs.Add("b:v", Config.videoBitrate);
 			} else {
-				encode.Add("c:v", Config.videoEncoder);
-
-				if (Config.quality is null) {
-					encode.Add("b:v", Config.videoBitrate);
+				if (Config.videoEncoder == vvenc) {
+					outArgs.Add("qp", Config.quality.ToString()!);
 				} else {
-					if (Config.videoEncoder == vvenc) {
-						encode.Add("qp", Config.quality.ToString()!);
-					} else {
-						encode.Add("crf", Config.quality.ToString()!);
-					}
-
-					if (Config.videoEncoder == vpxvp9) {
-						encode.Add("b:v", "0");
-					}
+					outArgs.Add("crf", Config.quality.ToString()!);
 				}
-			}
 
-			if (Config.videoEncoder == vpxvp9 || Config.videoEncoder == aomav1) {
-				encode.Add("cpu-used", Config.speed.ToString());
-			} else if (Config.videoEncoder == x265 || Config.videoEncoder == x264) {
-				encode.Add("preset", (9 - Config.speed).ToString());
-			} else if (Config.videoEncoder == vvenc) {
-				encode.Add("preset", (4 - Config.speed).ToString());
-			} else {
-				encode.Add("preset", Config.speed.ToString());
-			}
-
-			#endregion
-
-			#region Audio options
-			if (Config.audioEncoder == "") {
-				encode.Add("an");
-			} else {
-				encode.Add("c:a", Config.audioEncoder);
-				if (Config.audioEncoder != "copy" && Config.audioEncoder != flac) {
-					encode.Add("b:a", Config.audioBitrate);
+				if (Config.videoEncoder == vpxvp9) { //VP9 evidently needs this, else it will default to constrained, not constant quality
+					outArgs.Add("b:v", "0");
 				}
-			}
-
-			if (Config.audioEncoder == opus) {
-				encode.Add("frame_duration", "60");
-			} else if (Config.audioEncoder == flac) {
-				encode.Add("compression_level", "12");
-			} else if (Config.audioEncoder == mp3) {
-				encode.Add("abr", "1");
-				encode.Add("compression_level", "0");
-			}
-			#endregion
-
-			#region Output file
-			if (Config.outputDirectory is not null) {
-				if (Config.createDirectoryIfNeeded) {
-					Config.outputDirectory.Create();
-				} else if (!Config.outputDirectory.Exists) {
-					throw new Exception($"Output directory {Config.outputDirectory.FullName} does not exist");
-				}
-			}
-			FileInfo output = new($"{(Config.outputDirectory ?? input.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(input.Name)}{Config.outputSuffix}{Config.outputExtension}");
-			if (Array.Exists(Config.inputFiles, input => input.FullName == output.FullName)) {
-				throw new Exception($"{output.Name} would overwrite an input file");
-			}
-			encode.outFile = output.FullName;
-			#endregion
-
-			#region Two-pass
-			if (Config.twoPass) {
-				encode.Add("pass", "2");
-				encode.Add("passlogfile", Path.GetFileNameWithoutExtension(output.Name));
-				Encode firstPass = encode.Clone();
-				encode.dependsOn = firstPass;
-				firstPass.Replace("pass", "1");
-
-				firstPass.Remove("cpu-used");
-				firstPass.ReplaceKey("c:a", "an");
-				foreach (string key in new string[] { "b:a", "frame_duration", "compression_level", "abr" }) {
-					firstPass.Remove(key);
-				}
-				firstPass.Add("f", "null");
-				firstPass.outFile = "-";
-			}
-			#endregion
-
-			if (Config.simulate) {
-				Console.WriteLine(encode);
-			} else {
-				encode.Start();
 			}
 		}
+
+		if (Config.videoEncoder == vpxvp9 || Config.videoEncoder == aomav1) {
+			outArgs.Add("cpu-used", Config.speed.ToString());
+		} else if (Config.videoEncoder == x265 || Config.videoEncoder == x264) {
+			outArgs.Add("preset", (9 - Config.speed).ToString());
+		} else if (Config.videoEncoder == vvenc) {
+			outArgs.Add("preset", (4 - Config.speed).ToString());
+		} else {
+			outArgs.Add("preset", Config.speed.ToString());
+		}
+
+		#endregion
+
+		#region Audio options
+		if (Config.audioEncoder == "") {
+			outArgs.Add("an");
+		} else {
+			outArgs.Add("c:a", Config.audioEncoder);
+			if (Config.audioEncoder != "copy" && Config.audioEncoder != flac) {
+				outArgs.Add("b:a", Config.audioBitrate);
+			}
+		}
+
+		if (Config.audioEncoder == opus) {
+			outArgs.Add("frame_duration", "60");
+		} else if (Config.audioEncoder == flac) {
+			outArgs.Add("compression_level", "12");
+		} else if (Config.audioEncoder == mp3) {
+			outArgs.Add("abr", "1");
+			outArgs.Add("compression_level", "0");
+		}
+		#endregion
+
+		#region Output file
+		if (Config.outputDirectory is not null) {
+			if (Config.createDirectoryIfNeeded) {
+				Config.outputDirectory.Create();
+			} else if (!Config.outputDirectory.Exists) {
+				throw new Exception($"Output directory {Config.outputDirectory.FullName} does not exist");
+			}
+		}
+		FileInfo output = new($"{(Config.outputDirectory ?? input.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(input.Name)}{Config.outputSuffix}{Config.outputExtension}");
+		if (Array.Exists(Config.inputFiles, input => input.FullName == output.FullName)) {
+			throw new Exception($"{output.Name} would overwrite an input file");
+		}
+		encode.outFile = output.FullName;
+		#endregion
+
+		#region Two-pass
+		if (Config.twoPass) {
+			outArgs.Add("pass", "2");
+			outArgs.Add("passlogfile", Path.GetFileNameWithoutExtension(output.Name));
+			Encode firstPass = encode.Clone();
+			encode.dependsOn = firstPass;
+			firstPass.outputArgs.Replace("pass", "1");
+
+			foreach (string key in new string[] { "cpu-used", "c:a", "b:a", "frame_duration", "compression_level", "abr" }) {
+				firstPass.outputArgs.Remove(key);
+			}
+			AddNoOutputArgs(firstPass);
+		}
+		#endregion
+
+		encode.Start();
+
+		#region Comparison
+		if (Config.compare != "") {
+			Encode comparison = new();
+			Encode.ArgList distorted = comparison.AddInput(output.FullName);
+			Encode.ArgList reference = comparison.AddInput(input.FullName);
+
+			string filterString = Config.compare;
+			if (Config.compare == vmaf) {
+				filterString += $"=model=version=vmaf_v0.6.1\\\\:motion.motion_force_zero=true:n_threads={Environment.ProcessorCount}";
+			}
+			if (Config.compareSync == 1) {
+				distorted.Add("r", "1");
+				reference.Add("r", "1");
+			} else if (Config.compareSync == 2) {
+				filterString += ":ts_sync_mode=nearest";
+			}
+			if (Config.compareInterval > 1) {
+				filterString = $"[0:v]select=not(mod(n\\,{Config.compareInterval}))[v0];[1:v]select=not(mod(n\\,{Config.compareInterval}))[v1];[v0][v1]" + filterString;
+			}
+			comparison.outputArgs.Add("lavfi", filterString);
+			AddNoOutputArgs(comparison);
+
+			comparison.Start();
+		}
+		#endregion
+	}
+
+	static void AddNoOutputArgs(Encode encode) {
+		Encode.ArgList args = encode.outputArgs;
+		args.Add("-an");
+		args.Add("-sn");
+		args.Add("map_metadata", "-1");
+		args.Add("map_chapters", "-1");
+		args.Add("f", "null");
+		encode.outFile = "-";
 	}
 }

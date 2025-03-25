@@ -29,6 +29,12 @@ class Config {
 	public static string audioBitrate = "128Ki";
 	#endregion
 
+	#region Other options
+	public static string compare = "";
+	public static int compareSync = 1;
+	public static int compareInterval = 1;
+	#endregion
+
 	#region CPU options
 	public static ProcessPriorityClass priority = ProcessPriorityClass.BelowNormal;
 	public static nint cpuAffinity = 0;
@@ -36,12 +42,7 @@ class Config {
 
 	static readonly Dictionary<string, Action<string>> setters = new() {
 		#region File options
-		{ nameof(ffmpeg), path => {
-			ffmpeg = new(path);
-			if (!ffmpeg.Exists) {
-				throw new FileNotFoundException("ffmpeg not found", ffmpeg.FullName);
-			}
-		} },
+		{ nameof(ffmpeg), path => ffmpeg = new(path)},
 		{ nameof(inputFiles), paths => {
 			inputFiles = Array.ConvertAll(paths.Split('\n', StringSplitOptions.RemoveEmptyEntries), path => new FileInfo(path));
 			foreach (FileInfo input in inputFiles) {
@@ -51,12 +52,12 @@ class Config {
 			}
 		} },
 		{ nameof(outputDirectory), path => outputDirectory = path == "" ? null : new(path)},
-		{ nameof(createDirectoryIfNeeded), value => createDirectoryIfNeeded = value == "true" },
+		{ nameof(createDirectoryIfNeeded), value => createDirectoryIfNeeded = bool.Parse(value) },
 		{ nameof(outputPrefix), prefix => outputPrefix = prefix },
 		{ nameof(outputSuffix), suffix => outputSuffix = suffix },
 		{ nameof(outputExtension), extension => outputExtension = extension == "" ? "" : "." + extension },
-		{ nameof(overwrite), value => overwrite = value == "true" },
-		{ nameof(simulate), value => simulate = value == "true" },
+		{ nameof(overwrite), value => overwrite = bool.Parse(value) },
+		{ nameof(simulate), value => simulate = bool.Parse(value) },
 		#endregion
 
 		#region Video options
@@ -64,12 +65,18 @@ class Config {
 		{ nameof(videoBitrate), value => videoBitrate = value },
 		{ nameof(quality), value => quality = value == "" ? null : int.Parse(value) },
 		{ nameof(speed), value => speed = int.Parse(value) },
-		{ nameof(twoPass), value => twoPass = value == "true" },
+		{ nameof(twoPass), value => twoPass = bool.Parse(value) },
 		#endregion
 
 		#region Audio options
 		{ nameof(audioEncoder), name => audioEncoder = name },
 		{ nameof(audioBitrate), value => audioBitrate = value },
+		#endregion
+
+		#region Other options
+		{ nameof(compare), value => compare = value },
+		{ nameof(compareSync), value => compareSync = int.Parse(value) },
+		{ nameof(compareInterval), value => compareInterval = int.Parse(value) },
 		#endregion
 
 		#region CPU options
