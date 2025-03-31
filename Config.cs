@@ -30,6 +30,7 @@ class Config {
 	#endregion
 
 	#region Other options
+	public static bool benchmark = false;
 	public static string compare = "";
 	public static int compareSync = 1;
 	public static int compareInterval = 1;
@@ -74,6 +75,7 @@ class Config {
 		#endregion
 
 		#region Other options
+		{ nameof(benchmark), value => bool.Parse(value) },
 		{ nameof(compare), value => compare = value },
 		{ nameof(compareSync), value => compareSync = int.Parse(value) },
 		{ nameof(compareInterval), value => compareInterval = int.Parse(value) },

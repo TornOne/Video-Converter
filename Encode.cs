@@ -128,13 +128,13 @@ class Encode {
 		return fullArgs;
 	}
 
-	public void Start() {
+	public TimeSpan Start() {
 		if (Config.simulate) {
 			Console.WriteLine(ToString());
-			return;
+			return TimeSpan.Zero;
 		}
 
-		dependsOn?.Start();
+		TimeSpan totalProcessorTime = dependsOn?.Start() ?? TimeSpan.Zero;
 
 		ProcessStartInfo startInfo = new(Config.ffmpeg.FullName, GetArguments());
 		Process ffmpegProcess = Process.Start(startInfo)!;
@@ -144,6 +144,7 @@ class Encode {
 		}
 		//TODO: Track the conversion process and update the output (including the ETA)
 		ffmpegProcess.WaitForExit();
+		return totalProcessorTime + ffmpegProcess.TotalProcessorTime;
 	}
 
 	public override string ToString() {

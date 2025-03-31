@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using static Constants;
 
@@ -124,7 +125,16 @@ static class Program {
 		}
 		#endregion
 
-		encode.Start();
+		#region Benchmark
+		Stopwatch timer = Stopwatch.StartNew();
+		TimeSpan totalProcessorTime = encode.Start();
+		timer.Stop();
+
+		if (Config.benchmark) {
+			Console.WriteLine($"Wall clock time taken: {FormatTime(timer.Elapsed)}");
+			Console.WriteLine($"       CPU time taken: {FormatTime(totalProcessorTime)}");
+		}
+		#endregion
 
 		#region Comparison
 		if (Config.compare != "") {
@@ -161,5 +171,17 @@ static class Program {
 		args.Add("map_chapters", "-1");
 		args.Add("f", "null");
 		encode.outFile = "-";
+	}
+
+	static string FormatTime(TimeSpan time) {
+		string timeString = "";
+		if (time.TotalHours >= 1) {
+			timeString += $"{(int)time.TotalHours}h ";
+		}
+		if (time.TotalMinutes >= 1) {
+			timeString += $"{time.Minutes}m ";
+		}
+		timeString += $"{time.Seconds}s";
+		return timeString;
 	}
 }
