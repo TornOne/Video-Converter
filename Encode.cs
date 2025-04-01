@@ -144,6 +144,7 @@ class Encode {
 		}
 		//TODO: Track the conversion process and update the output (including the ETA)
 		ffmpegProcess.WaitForExit();
+		Console.WriteLine();
 		return totalProcessorTime + ffmpegProcess.TotalProcessorTime;
 	}
 

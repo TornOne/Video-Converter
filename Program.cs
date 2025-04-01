@@ -52,6 +52,10 @@ static class Program {
 		} else {
 			outArgs.Add("c:v", Config.videoEncoder);
 
+			if (Config.pixelFormat != "") {
+				outArgs.Add("pix_fmt", Config.pixelFormat);
+			}
+
 			if (Config.quality is null) {
 				outArgs.Add("b:v", Config.videoBitrate);
 			} else {
@@ -73,12 +77,8 @@ static class Program {
 			outArgs.Add("preset", (9 - Config.speed).ToString());
 		} else if (Config.videoEncoder == vvenc) {
 			outArgs.Add("preset", (4 - Config.speed).ToString());
-		} else {
+		} else if (Config.videoEncoder != "") {
 			outArgs.Add("preset", Config.speed.ToString());
-		}
-
-		if (Config.pixelFormat != "") {
-			outArgs.Add("pix_fmt", Config.pixelFormat);
 		}
 		#endregion
 
@@ -153,9 +153,10 @@ static class Program {
 		TimeSpan totalProcessorTime = encode.Start();
 		timer.Stop();
 
-		if (Config.benchmark) {
+		if (Config.benchmark && !Config.simulate) {
 			Console.WriteLine($"Wall clock time taken: {FormatTime(timer.Elapsed)}");
 			Console.WriteLine($"       CPU time taken: {FormatTime(totalProcessorTime)}");
+			Console.WriteLine();
 		}
 		#endregion
 
