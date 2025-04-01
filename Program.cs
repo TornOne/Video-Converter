@@ -73,6 +73,9 @@ static class Program {
 			outArgs.Add("preset", Config.speed.ToString());
 		}
 
+		if (Config.pixelFormat != "") {
+			outArgs.Add("pix_fmt", Config.pixelFormat);
+		}
 		#endregion
 
 		#region Audio options
@@ -165,8 +168,8 @@ static class Program {
 
 	static void AddNoOutputArgs(Encode encode) {
 		Encode.ArgList args = encode.outputArgs;
-		args.Add("-an");
-		args.Add("-sn");
+		args.Add("an");
+		args.Add("sn");
 		args.Add("map_metadata", "-1");
 		args.Add("map_chapters", "-1");
 		args.Add("f", "null");

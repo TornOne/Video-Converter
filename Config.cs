@@ -22,6 +22,7 @@ class Config {
 	public static int? quality = 21;
 	public static int speed = 1;
 	public static bool twoPass = true;
+	public static string pixelFormat = "";
 	#endregion
 
 	#region Audio options
@@ -67,6 +68,7 @@ class Config {
 		{ nameof(quality), value => quality = value == "" ? null : int.Parse(value) },
 		{ nameof(speed), value => speed = int.Parse(value) },
 		{ nameof(twoPass), value => twoPass = bool.Parse(value) },
+		{ nameof(pixelFormat), value => pixelFormat = value },
 		#endregion
 
 		#region Audio options

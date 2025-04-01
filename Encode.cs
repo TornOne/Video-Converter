@@ -69,7 +69,7 @@ class Encode {
 
 		public ArgList CloneTo(ArgList clone) {
 			foreach (string arg in args) {
-				clone.args.Add(arg);
+				clone.Add(arg);
 				if (argValues.TryGetValue(arg, out string? value)) {
 					clone.argValues[arg] = value;
 				}
