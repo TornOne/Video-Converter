@@ -90,6 +90,10 @@ static class Program {
 			if (Config.audioEncoder != "copy" && Config.audioEncoder != flac) {
 				outArgs.Add("b:a", Config.audioBitrate);
 			}
+
+			if (Config.audioChannels is not null) {
+				outArgs.Add("ac", Config.audioChannels.ToString()!);
+			}
 		}
 
 		if (Config.audioEncoder == opus) {
@@ -125,7 +129,7 @@ static class Program {
 			encode.dependsOn = firstPass;
 			firstPass.outputArgs.Replace("pass", "1");
 
-			foreach (string key in new string[] { "cpu-used", "c:a", "b:a", "frame_duration", "compression_level", "abr" }) {
+			foreach (string key in new string[] { "cpu-used", "c:a", "b:a", "ac", "frame_duration", "compression_level", "abr" }) {
 				firstPass.outputArgs.Remove(key);
 			}
 			AddNoOutputArgs(firstPass);

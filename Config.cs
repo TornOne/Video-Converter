@@ -28,6 +28,7 @@ class Config {
 	#region Audio options
 	public static string audioEncoder = "libopus";
 	public static string audioBitrate = "128Ki";
+	public static int? audioChannels = null;
 	#endregion
 
 	#region Other options
@@ -74,6 +75,7 @@ class Config {
 		#region Audio options
 		{ nameof(audioEncoder), name => audioEncoder = name },
 		{ nameof(audioBitrate), value => audioBitrate = value },
+		{ nameof(audioChannels), value => audioChannels = value == "" ? null : int.Parse(value) },
 		#endregion
 
 		#region Other options

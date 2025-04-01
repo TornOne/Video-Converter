@@ -58,7 +58,7 @@ class Encode {
 			return true;
 		}
 
-		/// <summary>Removes the given <paramref name="key"/> from the argument list along with it's associated value, if present.</summary>
+		/// <summary>Removes the given <paramref name="key"/> from the argument list along with its associated value, if present.</summary>
 		/// <returns><see langword="true"/> if <paramref name="key"/> exists and is thus removed, <see langword="false"/> otherwise.</returns>
 		public bool Remove(string key) {
 			argValues.Remove(key);
