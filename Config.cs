@@ -32,6 +32,9 @@ class Config {
 	#endregion
 
 	#region Other options
+	public static bool removeSubtitles = false;
+	public static bool removeMetadata = false;
+	public static bool removeChapters = false;
 	public static bool benchmark = false;
 	public static string compare = "";
 	public static int compareSync = 1;
@@ -79,6 +82,9 @@ class Config {
 		#endregion
 
 		#region Other options
+		{ nameof(removeSubtitles), value => removeSubtitles = bool.Parse(value) },
+		{ nameof(removeMetadata), value => removeMetadata = bool.Parse(value) },
+		{ nameof(removeChapters), value => removeChapters = bool.Parse(value) },
 		{ nameof(benchmark), value => benchmark = bool.Parse(value) },
 		{ nameof(compare), value => compare = value },
 		{ nameof(compareSync), value => compareSync = int.Parse(value) },

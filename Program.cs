@@ -106,6 +106,18 @@ static class Program {
 		}
 		#endregion
 
+		#region Other options
+		if (Config.removeSubtitles) {
+			outArgs.Add("sn");
+		}
+		if (Config.removeMetadata) {
+			outArgs.Add("map_metadata", "-1");
+		}
+		if (Config.removeChapters) {
+			outArgs.Add("map_chapters", "-1");
+		}
+		#endregion
+
 		#region Output file
 		if (Config.outputDirectory is not null) {
 			if (Config.createDirectoryIfNeeded) {
