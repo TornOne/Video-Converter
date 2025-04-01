@@ -77,7 +77,7 @@ class Config {
 		#endregion
 
 		#region Other options
-		{ nameof(benchmark), value => bool.Parse(value) },
+		{ nameof(benchmark), value => benchmark = bool.Parse(value) },
 		{ nameof(compare), value => compare = value },
 		{ nameof(compareSync), value => compareSync = int.Parse(value) },
 		{ nameof(compareInterval), value => compareInterval = int.Parse(value) },

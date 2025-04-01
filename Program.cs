@@ -27,6 +27,10 @@ static class Program {
 		foreach (FileInfo input in Config.inputFiles) {
 			Convert(input);
 		}
+
+		foreach (FileInfo logFile in new DirectoryInfo(Environment.CurrentDirectory).EnumerateFiles("*.log", SearchOption.TopDirectoryOnly)) {
+			logFile.Delete();
+		}
 	}
 
 	static void Convert(FileInfo input) {
