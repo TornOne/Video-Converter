@@ -23,6 +23,7 @@ class Config {
 	public static int speed = 1;
 	public static bool twoPass = true;
 	public static string pixelFormat = "";
+	public static bool lossless = false;
 	#endregion
 
 	#region Audio options
@@ -73,6 +74,7 @@ class Config {
 		{ nameof(speed), value => speed = int.Parse(value) },
 		{ nameof(twoPass), value => twoPass = bool.Parse(value) },
 		{ nameof(pixelFormat), value => pixelFormat = value },
+		{ nameof(lossless), value => lossless = bool.Parse(value) },
 		#endregion
 
 		#region Audio options

@@ -56,7 +56,19 @@ static class Program {
 				outArgs.Add("pix_fmt", Config.pixelFormat);
 			}
 
-			if (Config.quality is null) {
+			if (Config.lossless) {
+				if (Config.videoEncoder == vpxvp9) {
+					outArgs.Add("lossless", "1");
+				} else if (Config.videoEncoder == svtav1) {
+					outArgs.Add("svtav1-params", "lossless=1");
+				} else if (Config.videoEncoder == aomav1 || Config.videoEncoder == x264) {
+					outArgs.Add("crf", "0");
+				} else if (Config.videoEncoder == x265) {
+					outArgs.Add("x265-params", "lossless=1");
+				} else {
+					throw new Exception($"Lossless mode not supported for {Config.videoEncoder}");
+				}
+			} else if (Config.quality is null) {
 				outArgs.Add("b:v", Config.videoBitrate);
 			} else {
 				if (Config.videoEncoder == vvenc) {
@@ -73,6 +85,7 @@ static class Program {
 
 		if (Config.videoEncoder == vpxvp9 || Config.videoEncoder == aomav1) {
 			outArgs.Add("cpu-used", Config.speed.ToString());
+			outArgs.Add("row-mt", "1");
 		} else if (Config.videoEncoder == x265 || Config.videoEncoder == x264) {
 			outArgs.Add("preset", (9 - Config.speed).ToString());
 		} else if (Config.videoEncoder == vvenc) {
@@ -154,8 +167,8 @@ static class Program {
 		timer.Stop();
 
 		if (Config.benchmark && !Config.simulate) {
-			Console.WriteLine($"Wall clock time taken: {FormatTime(timer.Elapsed)}");
-			Console.WriteLine($"       CPU time taken: {FormatTime(totalProcessorTime)}");
+			Console.WriteLine($"Real time taken: {FormatTime(timer.Elapsed)}");
+			Console.WriteLine($" CPU time taken: {FormatTime(totalProcessorTime)}");
 			Console.WriteLine();
 		}
 		#endregion

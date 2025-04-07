@@ -131,6 +131,7 @@ class Encode {
 	public TimeSpan Start() {
 		if (Config.simulate) {
 			Console.WriteLine(ToString());
+			Console.WriteLine();
 			return TimeSpan.Zero;
 		}
 
