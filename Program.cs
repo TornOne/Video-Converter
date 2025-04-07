@@ -33,7 +33,15 @@ static class Program {
 		}
 	}
 
-	static void Convert(FileInfo input) {
+	static void Convert(FileInfo inputFile) {
+		Video input;
+		try {
+			input = new Video(inputFile);
+		} catch {
+			Console.WriteLine("ffprobe not found\n");
+			input = new Video();
+		}
+
 		Encode encode = new();
 		Encode.ArgList outArgs = encode.outputArgs;
 
@@ -41,7 +49,7 @@ static class Program {
 			encode.globalArgs.Add("y");
 		}
 
-		encode.AddInput(input.FullName);
+		encode.AddInput(inputFile.FullName);
 
 		#region Filter options
 		#endregion
@@ -93,6 +101,15 @@ static class Program {
 		} else if (Config.videoEncoder != "") {
 			outArgs.Add("preset", Config.speed.ToString());
 		}
+
+		//Google's reference encoder defaults aren't very good at multithreading or producing fast decodable video - they need help.
+		if (Config.videoEncoder == aomav1) {
+			outArgs.Add("tiles", $"{GetTiles(input.width, false)}x{GetTiles(input.height, false)}");
+			outArgs.Add("g", Math.Min(input.fps * 12, 1440).ToString());
+		} else if (Config.videoEncoder == vpxvp9) {
+			outArgs.Add("tile-rows", Math.Min(GetTiles(input.height, true), 2).ToString());
+			outArgs.Add("tile-columns", Math.Min(GetTiles(input.width, true), 6).ToString());
+		}
 		#endregion
 
 		#region Audio options
@@ -139,7 +156,7 @@ static class Program {
 				throw new Exception($"Output directory {Config.outputDirectory.FullName} does not exist");
 			}
 		}
-		FileInfo output = new($"{(Config.outputDirectory ?? input.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(input.Name)}{Config.outputSuffix}{Config.outputExtension}");
+		FileInfo output = new($"{(Config.outputDirectory ?? inputFile.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(inputFile.Name)}{Config.outputSuffix}{Config.outputExtension}");
 		if (Array.Exists(Config.inputFiles, input => input.FullName == output.FullName)) {
 			throw new Exception($"{output.Name} would overwrite an input file");
 		}
@@ -177,7 +194,7 @@ static class Program {
 		if (Config.compare != "") {
 			Encode comparison = new();
 			Encode.ArgList distorted = comparison.AddInput(output.FullName);
-			Encode.ArgList reference = comparison.AddInput(input.FullName);
+			Encode.ArgList reference = comparison.AddInput(inputFile.FullName);
 
 			string filterString = Config.compare;
 			if (Config.compare == vmaf) {
@@ -220,5 +237,17 @@ static class Program {
 		}
 		timeString += $"{time.Seconds}s";
 		return timeString;
+	}
+
+	static int GetTiles(int pixels, bool log) {
+		if (pixels < 1366) {
+			return log ? 0 : 1;
+		}
+
+		int tiles = pixels / 1024;
+		if (log) {
+			tiles = Math.ILogB(tiles);
+		}
+		return Math.Abs(pixels / (log ? 1 << tiles : tiles) - 1024) < Math.Abs(pixels / (log ? 1 << (tiles + 1) : tiles + 1) - 1024) ? tiles : tiles + 1;
 	}
 }

@@ -6,6 +6,7 @@ using System.IO;
 class Config {
 	#region File options
 	public static FileInfo ffmpeg = new("ffmpeg.exe");
+	public static FileInfo ffprobe = new("ffprobe.exe");
 	public static FileInfo[] inputFiles = [];
 	public static DirectoryInfo? outputDirectory;
 	public static bool createDirectoryIfNeeded = true;
@@ -50,6 +51,7 @@ class Config {
 	static readonly Dictionary<string, Action<string>> setters = new() {
 		#region File options
 		{ nameof(ffmpeg), path => ffmpeg = new(path)},
+		{ nameof(ffprobe), path => ffprobe = new(path)},
 		{ nameof(inputFiles), paths => {
 			inputFiles = Array.ConvertAll(paths.Split('\n', StringSplitOptions.RemoveEmptyEntries), path => new FileInfo(path));
 			foreach (FileInfo input in inputFiles) {
