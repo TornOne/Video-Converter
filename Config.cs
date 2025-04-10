@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-class Config {
+static class Config {
 	#region File options
 	public static FileInfo ffmpeg = new("ffmpeg.exe");
 	public static FileInfo ffprobe = new("ffprobe.exe");
@@ -102,7 +102,7 @@ class Config {
 	};
 
 	static Config() {
-		Override(new FileInfo("defaults.cfg"));
+		Override(new FileInfo($"{AppContext.BaseDirectory}/defaults.cfg"));
 	}
 
 	public static void ReplaceInputFiles(string[] args) => setters[nameof(inputFiles)](string.Join('\n', args));
@@ -111,6 +111,9 @@ class Config {
 		if (!file.Exists) {
 			throw new FileNotFoundException("Configuration file not found", file.FullName);
 		}
+
+		string currentDirectory = Environment.CurrentDirectory;
+		Environment.CurrentDirectory = file.DirectoryName!;
 
 		int lineNo = 0;
 		foreach (string line in File.ReadLines(file.FullName)) {
@@ -138,6 +141,8 @@ class Config {
 				throw CreateEx($"Failed to validate value for setting \"{name}\"", ex);
 			}
 		}
+
+		Environment.CurrentDirectory = currentDirectory;
 
 		Exception CreateEx(string msg, Exception? ex = null) => new($"Error in {file.Name} line {lineNo}:\n{msg}", ex);
 	}

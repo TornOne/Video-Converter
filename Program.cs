@@ -6,8 +6,6 @@ using static Constants;
 
 static class Program {
 	static void Main(string[] args) {
-		Environment.CurrentDirectory = Path.GetDirectoryName(Environment.ProcessPath)!;
-
 		//If any arguments are config files, use them as overrides and remove them from the arguments
 		List<string> argList = new(args.Length);
 		foreach (string arg in args) {
