@@ -18,11 +18,11 @@ class Config {
 	#endregion
 
 	#region Video options
-	public static string videoEncoder = "libvpx-vp9";
-	public static string videoBitrate = "160KiB";
-	public static int? quality = 21;
-	public static int speed = 1;
-	public static bool twoPass = true;
+	public static string videoEncoder = Constants.svtav1;
+	public static string videoBitrate = "640KiB";
+	public static int? quality = 30;
+	public static int speed = 4;
+	public static bool twoPass = false;
 	public static string pixelFormat = "";
 	public static bool lossless = false;
 	#endregion

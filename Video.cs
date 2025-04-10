@@ -11,7 +11,7 @@ class Video {
 	public Video() { }
 
 	public Video(FileInfo file) {
-		ProcessStartInfo startInfo = new(Config.ffprobe.FullName, ["-hide_banner", "-v", "error", "-of", "default=nw=1", "-select_streams", "v:0", "-show_entries", "stream=width,height,avg_frame_rate:format=duration", file.FullName]) {
+		ProcessStartInfo startInfo = new(Config.ffprobe.FullName, ["-hide_banner", "-of", "default=nw=1", "-select_streams", "v:0", "-show_entries", "stream=width,height,avg_frame_rate:format=duration", file.FullName]) {
 			RedirectStandardOutput = true,
 			RedirectStandardError = true
 		};
