@@ -53,14 +53,25 @@ static class Config {
 		{ nameof(ffmpeg), path => ffmpeg = new(path)},
 		{ nameof(ffprobe), path => ffprobe = new(path)},
 		{ nameof(inputFiles), paths => {
-			inputFiles = Array.ConvertAll(paths.Split('\n', StringSplitOptions.RemoveEmptyEntries), path => new FileInfo(path));
-			foreach (FileInfo input in inputFiles) {
-				if (!input.Exists) {
-					throw new FileNotFoundException("Input file not found", input.FullName);
+			List<FileInfo> files = [];
+			foreach (string path in paths.Split("\n", StringSplitOptions.RemoveEmptyEntries)) {
+				DirectoryInfo dir = new(path);
+				if (dir.Exists) {
+					files.AddRange(dir.EnumerateFiles("*", SearchOption.AllDirectories));
+					continue;
 				}
+
+				FileInfo file = new(path);
+				if (file.Exists) {
+					files.Add(file);
+					continue;
+				}
+
+				throw new FileNotFoundException("Input file or directory not found", file.FullName);
 			}
+			inputFiles = [.. files];
 		} },
-		{ nameof(outputDirectory), path => outputDirectory = path == "" ? null : new(path)},
+		{ nameof(outputDirectory), path => outputDirectory = path == "" ? null : new DirectoryInfo(path)},
 		{ nameof(createDirectoryIfNeeded), value => createDirectoryIfNeeded = bool.Parse(value) },
 		{ nameof(outputPrefix), prefix => outputPrefix = prefix },
 		{ nameof(outputSuffix), suffix => outputSuffix = suffix },
