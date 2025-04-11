@@ -8,14 +8,14 @@ The goal is to heavily simplify the usage of ffmpeg, by offering fewer, more con
 * Download and unzip one of the [latest releases](https://github.com/TornOne/Video-Converter/releases/latest).
   * The default download is platform-independent, but requires .NET 9 installed. (Will probably work with similar .NET versions if you change the version in the .json file.)
   * The "Win" option is a Windows-only executable that also requries .NET 9 to be installed.
-  * The "Win Standalone" is a Windows-only executable that does not require .NET to be installed.
+  * The "Win Standalone" option is a Windows-only executable that does not require .NET to be installed.
 * Find a version of ffmpeg and ffprobe. (ffprobe is optional, but recommended)
   * [Some options here](https://ffmpeg.org/download.html)
   * Keeping this up-to-date is optional, but will provide newer and better encoder versions.
 * Point `defaults.cfg` to ffmpeg and ffprobe and configure any other settings you want.
 
 ## Usage
-Video Converter accepts 0 or more file paths as arguments. Each path can either be to a configuration file (must end in `.cfg`) or to a video file.  
+Video Converter accepts 0 or more file and folder paths as arguments. Each path can be to a configuration file (must end in `.cfg`), to a video file, or to a folder containing only video files.  
 The configuration files act as overrides to `defaults.cfg` and are applied over each other in the order they appear as arguments.  
 Video files specify videos to convert and override any videos specified in a configuration file.
 
@@ -23,8 +23,8 @@ Each configuration file must be a newline separated list of `key=value` pairs. E
 Every key has to be the name of an option, but every option does not need to be defined in a configuration file.  
 `defaults.cfg` has information on each possible option, along with their default values. But these can be changed, or even deleted if you want. Aside from its location, it is not a special configuration file.
 
-Configuration and video files specified as arguments are relative to the current working directory.  
-Video files specified in a configuration file are relative to the directory of the configuration file.
+Relative paths specified as arguments are relative to the current working directory.  
+Relative paths specified in a configuration file are relative to the directory of the configuration file.
 
 ## Usage tips
 Start by reading over `defaults.cfg`, seeing what options there are, and set values to what you feel are good defaults for you.  
