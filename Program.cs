@@ -41,15 +41,77 @@ static class Program {
 		}
 
 		Encode encode = new();
+		Encode.ArgList inArgs = encode.AddInput(inputFile.FullName);
 		Encode.ArgList outArgs = encode.outputArgs;
 
 		if (Config.overwrite) {
 			encode.globalArgs.Add("y");
 		}
 
-		encode.AddInput(inputFile.FullName);
-
 		#region Filter options
+		List<string> filters = [];
+
+		if (Config.colorRange != "") {
+			filters.Add($"setrange={Config.colorRange}");
+		}
+
+		if (Config.startTime is not null) {
+			inArgs.Add("ss", FormatTimeSpan(Config.startTime.Value));
+		}
+		if (Config.duration is not null) {
+			inArgs.Add("t", FormatTimeSpan(Config.duration.Value));
+		} else if (Config.endTime is not null) {
+			inArgs.Add("t", FormatTimeSpan(Config.endTime.Value - (Config.startTime ?? TimeSpan.Zero)));
+		}
+
+		if (Config.cropWidth != "" || Config.cropHeight != "") {
+			List<string> cropOptions = [];
+			if (Config.cropWidth != "") {
+				cropOptions.Add($"w={Config.cropWidth}");
+			}
+			if (Config.cropHeight != "") {
+				cropOptions.Add($"h={Config.cropHeight}");
+			}
+			if (Config.cropLeft != "") {
+				cropOptions.Add($"x={Config.cropLeft}");
+			}
+			if (Config.cropTop != "") {
+				cropOptions.Add($"y={Config.cropTop}");
+			}
+			filters.Add($"crop={string.Join(':', cropOptions)}");
+		}
+
+		if (Config.width != "" || Config.height != "") {
+			filters.Add($"scale={(Config.width == "" ? "0" : Config.width)}:{(Config.height == "" ? "0" : Config.height)}");
+		}
+
+		if (Config.blendFrames && input.realValues) {
+			float framerateMult = Config.framerate is null ? Config.tempo : (input.fps * Config.tempo / Config.framerate.Value);
+			if (framerateMult > 1.5f) {
+				filters.Add($"tmix=frames={framerateMult:0}:weights=1");
+			}
+		}
+
+		if (Config.tempo != 1) {
+			filters.Add($"setpts={1 / Config.tempo}*PTS");
+
+			string atempo = "";
+			float tempoResidual = Config.tempo;
+			while (tempoResidual < 0.5) {
+				atempo += "atempo=0.5,";
+				tempoResidual *= 2;
+			}
+			atempo += $"atempo={tempoResidual}";
+			outArgs.Add("af", atempo);
+		}
+
+		if (filters.Count > 0) {
+			outArgs.Add("vf", string.Join(',', filters));
+		}
+
+		if (Config.framerate is not null) {
+			outArgs.Add("r:v", Config.framerate.Value.ToString());
+		}
 		#endregion
 
 		#region Video options
@@ -234,6 +296,18 @@ static class Program {
 			timeString += $"{time.Minutes}m ";
 		}
 		timeString += $"{time.Seconds}s";
+		return timeString;
+	}
+
+	static string FormatTimeSpan(TimeSpan time) {
+		string timeString = "";
+		if (time.TotalHours >= 1) {
+			timeString += $"{(int)time.TotalHours}:";
+		}
+		if (time.TotalMinutes >= 1) {
+			timeString += $"{time.Minutes:00}:";
+		}
+		timeString += $"{time.TotalSeconds:00.####}";
 		return timeString;
 	}
 

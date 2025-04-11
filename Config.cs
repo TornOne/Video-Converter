@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 
-static class Config {
+static partial class Config {
 	#region File options
 	public static FileInfo ffmpeg = new("ffmpeg.exe");
 	public static FileInfo ffprobe = new("ffprobe.exe");
@@ -15,6 +16,22 @@ static class Config {
 	public static string outputExtension = ".webm";
 	public static bool overwrite = true;
 	public static bool simulate = false;
+	#endregion
+
+	#region Filter options
+	public static string colorRange = "";
+	public static TimeSpan? startTime = null;
+	public static TimeSpan? endTime = null;
+	public static TimeSpan? duration = null;
+	public static string cropWidth = "";
+	public static string cropHeight = "";
+	public static string cropLeft = "";
+	public static string cropTop = "";
+	public static string width = "";
+	public static string height = "";
+	public static float tempo = 1;
+	public static Fraction? framerate = null;
+	public static bool blendFrames = false;
 	#endregion
 
 	#region Video options
@@ -78,6 +95,27 @@ static class Config {
 		{ nameof(outputExtension), extension => outputExtension = extension == "" ? "" : "." + extension },
 		{ nameof(overwrite), value => overwrite = bool.Parse(value) },
 		{ nameof(simulate), value => simulate = bool.Parse(value) },
+		#endregion
+
+		#region Filter options
+		{ nameof(colorRange), value => colorRange = value },
+		{ nameof(startTime), value => startTime = ParseTimeSpan(value) },
+		{ nameof(endTime), value => endTime = ParseTimeSpan(value) },
+		{ nameof(duration), value => duration = ParseTimeSpan(value) },
+		{ nameof(cropWidth), value => cropWidth = value },
+		{ nameof(cropHeight), value => cropHeight = value },
+		{ nameof(cropLeft), value => cropLeft = value },
+		{ nameof(cropTop), value => cropTop = value },
+		{ nameof(width), value => width = value },
+		{ nameof(height), value => height = value },
+		{ nameof(tempo), value => {
+			tempo = float.Parse(value);
+			if (tempo < 0.001f) {
+				throw new ArgumentOutOfRangeException(nameof(tempo), "Tempo must be at least 0.001");
+			}
+		} },
+		{ nameof(framerate), value => framerate = Fraction.Parse(value) },
+		{ nameof(blendFrames), value => blendFrames = bool.Parse(value) },
 		#endregion
 
 		#region Video options
@@ -157,4 +195,29 @@ static class Config {
 
 		Exception CreateEx(string msg, Exception? ex = null) => new($"Error in {file.Name} line {lineNo}:\n{msg}", ex);
 	}
+
+	static TimeSpan ParseTimeSpan(string value) {
+		GroupCollection groups = TimeRegex().Match(value).Groups;
+		return TimeSpan.FromHours(groups.TryGetValue("hours", out Group? hours) && hours.Success ? int.Parse(hours.ValueSpan) : 0,
+			groups.TryGetValue("minutes", out Group? minutes) && minutes.Success ? int.Parse(minutes.ValueSpan) : 0,
+			groups.TryGetValue("seconds", out Group? seconds) && seconds.Success ? int.Parse(seconds.ValueSpan) : 0,
+			groups.TryGetValue("decimals", out Group? decimals) && decimals.Success ? (int)(double.Parse(decimals.ValueSpan) * 1000 + 0.5) : 0);
+	}
+
+	[GeneratedRegex("^(((?<hours>[0-9]+):)?(?<minutes>[0-9]+):)?(?<seconds>[0-9]+)(?<decimals>\\.[0-9]+)?$", RegexOptions.ExplicitCapture)]
+	private static partial Regex TimeRegex();
+}
+
+readonly struct Fraction(int num, int denom = 1) {
+	public readonly int num = num, denom = denom;
+
+	public static Fraction Parse(string value) {
+		string[] pair = value.Split("/");
+		return new Fraction(int.Parse(pair[0]), int.Parse(pair[1]));
+	}
+
+	public static implicit operator float(Fraction f) => (float)f.num / f.denom;
+	public static implicit operator Fraction(int num) => new(num);
+
+	public override string ToString() => $"{num}{(denom > 1 ? $"/{denom}" : "")}";
 }

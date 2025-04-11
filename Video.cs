@@ -3,9 +3,10 @@ using System.Diagnostics;
 using System.IO;
 
 class Video {
+	public bool realValues = false;
 	public readonly int width = 2560;
 	public readonly int height = 1440;
-	public readonly int fps = 60;
+	public readonly Fraction fps = 60;
 	public TimeSpan duration;
 
 	public Video() { }
@@ -18,6 +19,7 @@ class Video {
 		Process process = Process.Start(startInfo)!;
 		StreamReader stdout = process.StandardOutput;
 
+		realValues = true;
 		while (!stdout.EndOfStream) {
 			string[] pair = process.StandardOutput.ReadLine()!.Split('=', 2);
 			string key = pair[0];
@@ -28,8 +30,7 @@ class Video {
 			} else if (key == "height") {
 				height = int.Parse(value);
 			} else if (key == "avg_frame_rate") {
-				pair = value.Split("/");
-				fps = Convert.ToInt32(double.Parse(pair[0]) / double.Parse(pair[1]));
+				fps = Fraction.Parse(value);
 			} else if (key == "duration") {
 				duration = TimeSpan.FromSeconds(double.Parse(value));
 			}
