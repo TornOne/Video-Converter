@@ -31,8 +31,9 @@ Start by reading over `defaults.cfg`, seeing what options there are, and set val
 Video and audio option sections are the most likely ones that you will want to change regularly, depending on the purpose for which you are encoding. I would recommend making a new configuration file with just those options (and any other you foresee yourself changing often), and stick to just editing that file in the future.  
 If you switch back and forth between a few different encoding settings, make an override file for each and pass the corresponding one in with the videos you want to convert.
 
-### TODO
+### Future plans
 * Add sample configuration override files for various use cases.
 * Add reference info on speed and quality options.
+* Support hardware encoders.
 
 </div>
