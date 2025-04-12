@@ -50,6 +50,9 @@ static class Program {
 
 		#region Filter options
 		List<string> filters = [];
+		if (Config.videoFilterPrepend != "") {
+			filters.Add(Config.videoFilterPrepend);
+		}
 
 		if (Config.colorRange != "") {
 			filters.Add($"setrange={Config.colorRange}");
@@ -103,6 +106,10 @@ static class Program {
 			}
 			atempo += $"atempo={tempoResidual}";
 			outArgs.Add("af", atempo);
+		}
+
+		if (Config.videoFilterAppend != "") {
+			filters.Add(Config.videoFilterAppend);
 		}
 
 		if (filters.Count > 0) {
@@ -206,6 +213,9 @@ static class Program {
 		if (Config.removeChapters) {
 			outArgs.Add("map_chapters", "-1");
 		}
+
+		AddExtraOptions(Config.extraInputOptions, inArgs);
+		AddExtraOptions(Config.extraOutputOptions, outArgs);
 		#endregion
 
 		#region Output file
@@ -275,6 +285,15 @@ static class Program {
 			comparison.Start();
 		}
 		#endregion
+	}
+
+	static void AddExtraOptions(Dictionary<string, string> options, Encode.ArgList args) {
+		foreach (KeyValuePair<string, string> option in options) {
+			args.Add(option.Key);
+			if (option.Value != "") {
+				args.Replace(option.Key, option.Value);
+			}
+		}
 	}
 
 	static void AddNoOutputArgs(Encode encode) {

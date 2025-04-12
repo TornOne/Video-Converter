@@ -32,6 +32,8 @@ static partial class Config {
 	public static float tempo = 1;
 	public static Fraction? framerate = null;
 	public static bool blendFrames = false;
+	public static string videoFilterPrepend = "";
+	public static string videoFilterAppend = "";
 	#endregion
 
 	#region Video options
@@ -58,6 +60,8 @@ static partial class Config {
 	public static string compare = "";
 	public static int compareSync = 1;
 	public static int compareInterval = 1;
+	public static Dictionary<string, string> extraInputOptions = [];
+	public static Dictionary<string, string> extraOutputOptions = [];
 	#endregion
 
 	#region CPU options
@@ -116,6 +120,8 @@ static partial class Config {
 		} },
 		{ nameof(framerate), value => framerate = Fraction.Parse(value) },
 		{ nameof(blendFrames), value => blendFrames = bool.Parse(value) },
+		{ nameof(videoFilterPrepend), value => videoFilterPrepend = value },
+		{ nameof(videoFilterAppend), value => videoFilterAppend = value },
 		#endregion
 
 		#region Video options
@@ -142,6 +148,8 @@ static partial class Config {
 		{ nameof(compare), value => compare = value },
 		{ nameof(compareSync), value => compareSync = int.Parse(value) },
 		{ nameof(compareInterval), value => compareInterval = int.Parse(value) },
+		{ nameof(extraInputOptions), value => extraInputOptions = ParseExtraOptions(value)},
+		{ nameof(extraOutputOptions), value => extraOutputOptions = ParseExtraOptions(value) },
 		#endregion
 
 		#region CPU options
@@ -206,12 +214,40 @@ static partial class Config {
 
 	[GeneratedRegex("^(((?<hours>[0-9]+):)?(?<minutes>[0-9]+):)?(?<seconds>[0-9]+)(?<decimals>\\.[0-9]+)?$", RegexOptions.ExplicitCapture)]
 	private static partial Regex TimeRegex();
+
+	static Dictionary<string, string> ParseExtraOptions(string argString) {
+		Dictionary<string, string> options = [];
+		string key = "";
+		List<string> value = [];
+		void AddOption() {
+			if (key != "") {
+				options[key] = string.Join(' ', value);
+			}
+			value = [];
+		}
+
+		foreach (string arg in argString.Split(' ', StringSplitOptions.RemoveEmptyEntries)) {
+			if (arg[0] == '-') {
+				AddOption();
+				key = arg[1..];
+			} else {
+				value.Add(arg);
+			}
+		}
+		AddOption();
+
+		return options;
+	}
 }
 
 readonly struct Fraction(int num, int denom = 1) {
 	public readonly int num = num, denom = denom;
 
 	public static Fraction Parse(string value) {
+		if (int.TryParse(value, out int num)) {
+			return new Fraction(num);
+		}
+
 		string[] pair = value.Split("/");
 		return new Fraction(int.Parse(pair[0]), int.Parse(pair[1]));
 	}
