@@ -143,9 +143,7 @@ static class Program {
 				} else {
 					throw new Exception($"Lossless mode not supported for {Config.videoEncoder}");
 				}
-			} else if (Config.quality is null) {
-				outArgs.Add("b:v", Config.videoBitrate);
-			} else {
+			} else if (Config.quality is not null) {
 				if (Config.videoEncoder == vvenc) {
 					outArgs.Add("qp", Config.quality.ToString()!);
 				} else {
@@ -155,6 +153,9 @@ static class Program {
 				if (Config.videoEncoder == vpxvp9) { //VP9 evidently needs this, else it will default to constrained, not constant quality
 					outArgs.Add("b:v", "0");
 				}
+			} else {
+				TimeSpan duration = Config.targetSize == "" ? TimeSpan.Zero : Config.duration ?? ((Config.endTime ?? input.duration) - (Config.startTime ?? TimeSpan.Zero));
+				outArgs.Add("b:v", duration > TimeSpan.Zero ? GetTargetBitrate(duration) : Config.videoBitrate);
 			}
 		}
 
@@ -188,7 +189,7 @@ static class Program {
 				outArgs.Add("b:a", Config.audioBitrate);
 			}
 
-			if (Config.audioChannels is not null) {
+			if (Config.audioChannels is not null && Config.audioEncoder != "copy") {
 				outArgs.Add("ac", Config.audioChannels.ToString()!);
 			}
 		}
@@ -340,5 +341,44 @@ static class Program {
 			tiles = Math.ILogB(tiles);
 		}
 		return Math.Abs(pixels / (log ? 1 << tiles : tiles) - 1024) < Math.Abs(pixels / (log ? 1 << (tiles + 1) : tiles + 1) - 1024) ? tiles : tiles + 1;
+	}
+
+	static long ParseBits(ReadOnlySpan<char> value, string optionName) {
+		long suffix = 1;
+		if (value[^1] == 'B') {
+			suffix = 8;
+			value = value[..^1];
+		}
+
+		bool isPowerOf1024 = false;
+		if (value[^1] == 'i') {
+			isPowerOf1024 = true;
+			value = value[..^1];
+		}
+
+		if (value[^1] == 'K') {
+			suffix *= isPowerOf1024 ? 1024 : 1000;
+			value = value[..^1];
+		} else if (value[^1] == 'M') {
+			suffix *= isPowerOf1024 ? 1024 * 1024 : 1000 * 1000;
+			value = value[..^1];
+		} else if (value[^1] == 'G') {
+			suffix *= isPowerOf1024 ? 1024 * 1024 * 1024 : 1000 * 1000 * 1000;
+			value = value[..^1];
+		}
+
+		return long.TryParse(value, out long bits) ? bits * suffix : throw new FormatException($"Failed to parse {optionName}");
+	}
+
+	static string GetTargetBitrate(TimeSpan duration) {
+		double bitsPerSecond = ParseBits(Config.targetSize, "target size") / duration.TotalSeconds;
+		if (Config.audioEncoder is not null) {
+			bitsPerSecond -= ParseBits(Config.audioBitrate, "audio bitrate");
+		}
+
+		return bitsPerSecond > 1024 * 1024 * 1024 ? $"{bitsPerSecond / 1024 * 1024 * 1024:0.##}Gi"
+			: bitsPerSecond >= 1024 * 1024 ? $"{bitsPerSecond / 1024 * 1024:0.##}Mi"
+			: bitsPerSecond >= 10000 ? $"{bitsPerSecond / 1024:0.##}Ki"
+			: $"{bitsPerSecond:0}";
 	}
 }

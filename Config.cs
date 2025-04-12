@@ -39,6 +39,7 @@ static partial class Config {
 	#region Video options
 	public static string videoEncoder = Constants.svtav1;
 	public static string videoBitrate = "640KiB";
+	public static string targetSize = "";
 	public static int? quality = 30;
 	public static int speed = 4;
 	public static bool twoPass = false;
@@ -127,6 +128,7 @@ static partial class Config {
 		#region Video options
 		{ nameof(videoEncoder), name => videoEncoder = name },
 		{ nameof(videoBitrate), value => videoBitrate = value },
+		{ nameof(targetSize), value => targetSize = value },
 		{ nameof(quality), value => quality = value == "" ? null : int.Parse(value) },
 		{ nameof(speed), value => speed = int.Parse(value) },
 		{ nameof(twoPass), value => twoPass = bool.Parse(value) },
