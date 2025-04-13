@@ -22,8 +22,8 @@ static class Program {
 			Config.ReplaceInputFiles([.. argList]);
 		}
 
-		foreach (FileInfo input in Config.inputFiles) {
-			Convert(input);
+		foreach ((FileInfo input, DirectoryInfo? inputDir) in Config.inputFiles) {
+			Convert(input, inputDir);
 		}
 
 		foreach (FileInfo logFile in new DirectoryInfo(Environment.CurrentDirectory).EnumerateFiles("*.log", SearchOption.TopDirectoryOnly)) {
@@ -31,7 +31,7 @@ static class Program {
 		}
 	}
 
-	static void Convert(FileInfo inputFile) {
+	static void Convert(FileInfo inputFile, DirectoryInfo? inputDirectory) {
 		Video input;
 		try {
 			input = new Video(inputFile);
@@ -220,15 +220,22 @@ static class Program {
 		#endregion
 
 		#region Output file
+		DirectoryInfo outputDirectory;
 		if (Config.outputDirectory is not null) {
+			outputDirectory = inputDirectory is null
+				? Config.outputDirectory
+				: new FileInfo(Path.Combine(Config.outputDirectory.FullName, Path.GetRelativePath(inputDirectory.Parent!.FullName, inputFile.FullName))).Directory!;
+
 			if (Config.createDirectoryIfNeeded) {
-				Config.outputDirectory.Create();
+				outputDirectory.Create();
 			} else if (!Config.outputDirectory.Exists) {
-				throw new Exception($"Output directory {Config.outputDirectory.FullName} does not exist");
+				throw new Exception($"Output directory {outputDirectory.FullName} does not exist");
 			}
+		} else {
+			outputDirectory = inputFile.Directory!;
 		}
-		FileInfo output = new($"{(Config.outputDirectory ?? inputFile.Directory!).FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(inputFile.Name)}{Config.outputSuffix}{Config.outputExtension}");
-		if (Array.Exists(Config.inputFiles, input => input.FullName == output.FullName)) {
+		FileInfo output = new($"{outputDirectory.FullName}/{Config.outputPrefix}{Path.GetFileNameWithoutExtension(inputFile.Name)}{Config.outputSuffix}{Config.outputExtension}");
+		if (Array.Exists(Config.inputFiles, input => input.input.FullName == output.FullName)) {
 			throw new Exception($"{output.Name} would overwrite an input file");
 		}
 		encode.outFile = output.FullName;

@@ -8,7 +8,7 @@ static partial class Config {
 	#region File options
 	public static FileInfo ffmpeg = new("ffmpeg.exe");
 	public static FileInfo ffprobe = new("ffprobe.exe");
-	public static FileInfo[] inputFiles = [];
+	public static (FileInfo input, DirectoryInfo? dir)[] inputFiles = [];
 	public static DirectoryInfo? outputDirectory;
 	public static bool createDirectoryIfNeeded = true;
 	public static string outputPrefix = "";
@@ -75,17 +75,19 @@ static partial class Config {
 		{ nameof(ffmpeg), path => ffmpeg = new(path)},
 		{ nameof(ffprobe), path => ffprobe = new(path)},
 		{ nameof(inputFiles), paths => {
-			List<FileInfo> files = [];
+			List<(FileInfo, DirectoryInfo?)> files = [];
 			foreach (string path in paths.Split("\n", StringSplitOptions.RemoveEmptyEntries)) {
 				DirectoryInfo dir = new(path);
 				if (dir.Exists) {
-					files.AddRange(dir.EnumerateFiles("*", SearchOption.AllDirectories));
+					foreach (FileInfo dirFile in dir.EnumerateFiles("*", SearchOption.AllDirectories)) {
+						files.Add((dirFile, dir));
+					}
 					continue;
 				}
 
 				FileInfo file = new(path);
 				if (file.Exists) {
-					files.Add(file);
+					files.Add((file, null));
 					continue;
 				}
 
