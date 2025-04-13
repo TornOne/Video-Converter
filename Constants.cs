@@ -15,6 +15,8 @@ static class Constants {
 	public const string x265 = "libx265";
 	public const string x264 = "libx264";
 	public const string vvenc = "libvvenc";
+	public const string nvenc = "nvenc";
+	public const string amf = "amf";
 
 	//Audio codecs
 	public const string opus = "libopus";

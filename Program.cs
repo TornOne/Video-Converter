@@ -140,12 +140,19 @@ static class Program {
 					outArgs.Add("crf", "0");
 				} else if (Config.videoEncoder == x265) {
 					outArgs.Add("x265-params", "lossless=1");
+				} else if (Config.videoEncoder.EndsWith(nvenc)) {
+					outArgs.Add("tune", "lossless");
 				} else {
 					throw new Exception($"Lossless mode not supported for {Config.videoEncoder}");
 				}
 			} else if (Config.quality is not null) {
 				if (Config.videoEncoder == vvenc) {
 					outArgs.Add("qp", Config.quality.ToString()!);
+				} else if (Config.videoEncoder.EndsWith(nvenc)) {
+					outArgs.Add("cq", Config.quality.ToString()!);
+				} else if (Config.videoEncoder.EndsWith(amf)) {
+					outArgs.Add("rc", "qvbr");
+					outArgs.Add("qvbr_quality_level", Config.quality.ToString()!);
 				} else {
 					outArgs.Add("crf", Config.quality.ToString()!);
 				}
@@ -154,6 +161,10 @@ static class Program {
 					outArgs.Add("b:v", "0");
 				}
 			} else {
+				if (Config.videoEncoder.EndsWith(amf)) {
+					outArgs.Add("rc", "hqvbr");
+				}
+
 				TimeSpan duration = Config.targetSize == "" ? TimeSpan.Zero : Config.duration ?? ((Config.endTime ?? input.duration) - (Config.startTime ?? TimeSpan.Zero));
 				outArgs.Add("b:v", duration > TimeSpan.Zero ? GetTargetBitrate(duration) : Config.videoBitrate);
 			}
@@ -166,6 +177,10 @@ static class Program {
 			outArgs.Add("preset", (9 - Config.speed).ToString());
 		} else if (Config.videoEncoder == vvenc) {
 			outArgs.Add("preset", (4 - Config.speed).ToString());
+		} else if (Config.videoEncoder.EndsWith(nvenc)) {
+			outArgs.Add("preset", $"p{7 - Config.speed}");
+		} else if (Config.videoEncoder.EndsWith(amf)) {
+			outArgs.Add("preset", (Config.videoEncoder.StartsWith("av1") ? Config.speed : Config.speed + 1) switch { 0 => "high_quality", 1 => "quality", 2 => "balanced", 3 => "speed", _ => throw new Exception("Invalid speed value for AMF encoder") });
 		} else if (Config.videoEncoder != "") {
 			outArgs.Add("preset", Config.speed.ToString());
 		}
@@ -374,7 +389,7 @@ static class Program {
 			value = value[..^1];
 		}
 
-		return long.TryParse(value, out long bits) ? bits * suffix : throw new FormatException($"Failed to parse {optionName}");
+		return double.TryParse(value, out double bits) ? (long)(bits * suffix) : throw new FormatException($"Failed to parse {optionName}");
 	}
 
 	static string GetTargetBitrate(TimeSpan duration) {
