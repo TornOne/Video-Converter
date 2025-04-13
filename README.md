@@ -34,6 +34,5 @@ If you switch back and forth between a few different encoding settings, make an 
 ### Future plans
 * Add sample configuration override files for various use cases.
 * Add reference info on speed and quality options.
-* Support hardware encoders.
 
 </div>
