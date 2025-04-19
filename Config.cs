@@ -106,9 +106,9 @@ static partial class Config {
 
 		#region Filter options
 		{ nameof(colorRange), value => colorRange = value },
-		{ nameof(startTime), value => startTime = ParseTimeSpan(value) },
-		{ nameof(endTime), value => endTime = ParseTimeSpan(value) },
-		{ nameof(duration), value => duration = ParseTimeSpan(value) },
+		{ nameof(startTime), value => startTime = value == "" ? null : ParseTimeSpan(value) },
+		{ nameof(endTime), value => endTime = value == "" ? null : ParseTimeSpan(value) },
+		{ nameof(duration), value => duration = value == "" ? null : ParseTimeSpan(value) },
 		{ nameof(cropWidth), value => cropWidth = value },
 		{ nameof(cropHeight), value => cropHeight = value },
 		{ nameof(cropLeft), value => cropLeft = value },
@@ -121,7 +121,7 @@ static partial class Config {
 				throw new ArgumentOutOfRangeException(nameof(tempo), "Tempo must be at least 0.001");
 			}
 		} },
-		{ nameof(framerate), value => framerate = Fraction.Parse(value) },
+		{ nameof(framerate), value => framerate = value == "" ? null : Fraction.Parse(value) },
 		{ nameof(blendFrames), value => blendFrames = bool.Parse(value) },
 		{ nameof(videoFilterPrepend), value => videoFilterPrepend = value },
 		{ nameof(videoFilterAppend), value => videoFilterAppend = value },

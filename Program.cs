@@ -349,7 +349,7 @@ static class Program {
 		if (time.TotalMinutes >= 1) {
 			timeString += $"{time.Minutes:00}:";
 		}
-		timeString += $"{time.TotalSeconds:00.####}";
+		timeString += $"{time.TotalSeconds % 60:00.####}";
 		return timeString;
 	}
 
@@ -398,8 +398,8 @@ static class Program {
 			bitsPerSecond -= ParseBits(Config.audioBitrate, "audio bitrate");
 		}
 
-		return bitsPerSecond > 1024 * 1024 * 1024 ? $"{bitsPerSecond / 1024 * 1024 * 1024:0.##}Gi"
-			: bitsPerSecond >= 1024 * 1024 ? $"{bitsPerSecond / 1024 * 1024:0.##}Mi"
+		return bitsPerSecond > 1024 * 1024 * 1024 ? $"{bitsPerSecond / (1024 * 1024 * 1024):0.##}Gi"
+			: bitsPerSecond >= 1024 * 1024 ? $"{bitsPerSecond / (1024 * 1024):0.##}Mi"
 			: bitsPerSecond >= 10000 ? $"{bitsPerSecond / 1024:0.##}Ki"
 			: $"{bitsPerSecond:0}";
 	}
