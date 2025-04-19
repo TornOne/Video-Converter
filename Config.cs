@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 
 static partial class Config {
 	#region File options
-	public static FileInfo ffmpeg = new("ffmpeg.exe");
-	public static FileInfo ffprobe = new("ffprobe.exe");
+	public static FileInfo? ffmpeg = new("ffmpeg.exe");
+	public static FileInfo? ffprobe = new("ffprobe.exe");
 	public static (FileInfo input, DirectoryInfo? dir)[] inputFiles = [];
 	public static DirectoryInfo? outputDirectory;
 	public static bool createDirectoryIfNeeded = true;
@@ -72,8 +72,8 @@ static partial class Config {
 
 	static readonly Dictionary<string, Action<string>> setters = new() {
 		#region File options
-		{ nameof(ffmpeg), path => ffmpeg = new(path)},
-		{ nameof(ffprobe), path => ffprobe = new(path)},
+		{ nameof(ffmpeg), path => ffmpeg = path == "" ? null : new(path)},
+		{ nameof(ffprobe), path => ffprobe = path == "" ? null : new(path)},
 		{ nameof(inputFiles), paths => {
 			List<(FileInfo, DirectoryInfo?)> files = [];
 			foreach (string path in paths.Split("\n", StringSplitOptions.RemoveEmptyEntries)) {

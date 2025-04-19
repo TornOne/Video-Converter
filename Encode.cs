@@ -137,7 +137,7 @@ class Encode {
 
 		TimeSpan totalProcessorTime = dependsOn?.Start() ?? TimeSpan.Zero;
 
-		ProcessStartInfo startInfo = new(Config.ffmpeg.FullName, GetArguments());
+		ProcessStartInfo startInfo = new(Config.ffmpeg?.FullName ?? "ffmpeg", GetArguments());
 		Process ffmpegProcess = Process.Start(startInfo)!;
 		ffmpegProcess.PriorityClass = Config.priority;
 		if (Config.cpuAffinity != 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())) {
@@ -155,7 +155,7 @@ class Encode {
 			command.Append(dependsOn.ToString());
 			command.Append('\n');
 		}
-		command.Append(Config.ffmpeg.FullName);
+		command.Append(Config.ffmpeg?.FullName ?? "ffmpeg");
 		foreach (string arg in GetArguments()) {
 			command.Append(' ');
 			//TODO: This might need more work for special cases (https://ffmpeg.org/ffmpeg-all.html#toc-Quoting-and-escaping)
