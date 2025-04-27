@@ -129,9 +129,10 @@ class Encode {
 	}
 
 	public TimeSpan Start() {
+		Console.WriteLine(ToString());
+		Console.WriteLine();
+
 		if (Config.simulate) {
-			Console.WriteLine(ToString());
-			Console.WriteLine();
 			return TimeSpan.Zero;
 		}
 
