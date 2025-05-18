@@ -129,14 +129,14 @@ class Encode {
 	}
 
 	public TimeSpan Start() {
+		TimeSpan totalProcessorTime = dependsOn?.Start() ?? TimeSpan.Zero;
+
 		Console.WriteLine(ToString());
 		Console.WriteLine();
 
 		if (Config.simulate) {
-			return TimeSpan.Zero;
+			return totalProcessorTime;
 		}
-
-		TimeSpan totalProcessorTime = dependsOn?.Start() ?? TimeSpan.Zero;
 
 		ProcessStartInfo startInfo = new(Config.ffmpeg?.FullName ?? "ffmpeg", GetArguments());
 		Process ffmpegProcess = Process.Start(startInfo)!;
@@ -152,10 +152,6 @@ class Encode {
 
 	public override string ToString() {
 		StringBuilder command = new();
-		if (dependsOn is not null) {
-			command.Append(dependsOn.ToString());
-			command.Append('\n');
-		}
 		command.Append(Config.ffmpeg?.FullName ?? "ffmpeg");
 		foreach (string arg in GetArguments()) {
 			command.Append(' ');

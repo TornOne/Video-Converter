@@ -398,9 +398,12 @@ static class Program {
 			bitsPerSecond -= ParseBits(Config.audioBitrate, "audio bitrate");
 		}
 
-		return bitsPerSecond > 1024 * 1024 * 1024 ? $"{bitsPerSecond / (1024 * 1024 * 1024):0.##}Gi"
-			: bitsPerSecond >= 1024 * 1024 ? $"{bitsPerSecond / (1024 * 1024):0.##}Mi"
-			: bitsPerSecond >= 10000 ? $"{bitsPerSecond / 1024:0.##}Ki"
-			: $"{bitsPerSecond:0}";
+		int suffixIndex = 0;
+		while (bitsPerSecond > 9999 && suffixIndex < 3) {
+			bitsPerSecond /= 1024;
+			suffixIndex++;
+		}
+
+		return $"{bitsPerSecond.ToString("0." + new string('#', suffixIndex == 0 || bitsPerSecond >= 1000 ? 0 : bitsPerSecond >= 100 ? 1 : 2))}{(suffixIndex == 0 ? "" : suffixIndex == 1 ? "Ki" : suffixIndex == 2 ? "Mi" : "Gi")}";
 	}
 }
