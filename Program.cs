@@ -284,7 +284,12 @@ static class Program {
 		#endregion
 
 		#region Comparison
-		if (Config.compare != "") {
+		if (Config.compare == ssimulacra2) {
+			Process comparer = Process.Start($"{AppContext.BaseDirectory}/ssimulacra2video.exe", [inputFile.FullName, output.FullName, "-n", Config.compareInterval.ToString()]);
+			comparer.PriorityClass = Config.priority;
+			comparer.WaitForExit();
+			Console.WriteLine();
+		} else if (Config.compare != "") {
 			Encode comparison = new();
 			Encode.ArgList distorted = comparison.AddInput(output.FullName);
 			Encode.ArgList reference = comparison.AddInput(inputFile.FullName);
