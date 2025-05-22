@@ -31,8 +31,20 @@ Start by reading over `defaults.cfg`, seeing what options there are, and set val
 Video and audio option sections are the most likely ones that you will want to change regularly, depending on the purpose for which you are encoding. I would recommend making a new configuration file with just those options (and any other you foresee yourself changing often), and stick to just editing that file in the future.  
 If you switch back and forth between a few different encoding settings, make an override file for each and pass the corresponding one in with the videos you want to convert.
 
-### Future plans
-* Add sample configuration override files for various use cases.
-* Add reference info on speed and quality options.
+## Help, I don't know anything about video encoding?
+Start by considering why you're encoding the video and maybe grab one of the sample configuration override files.
+* Just want to quickly share some video you recorded, but it's too big to upload to your favorite social media or communication platform? Have a graphics card in your computer?
+  * Grab the `Discord nvenc.cfg` sample. It's optimized for Discord, but should work for other similar places. There are comments inside on what you can change.
+* The above, but the maximum file size is small or you don't have a GPU?
+  * Grab the `Small VP9.cfg` sample. It's particularly good at hitting a specific target size.
+* Want to store a video for a long time, or upload it to a lot of people? Compression is more important than how long it takes?
+  * Grab the `Archive.cfg` sample. As always, there are comments inside.
+* Want to temporarily store a video as an intermediate step in some editing process?
+  * Grab the `Lossless.cfg` sample. Warning, it will generate very, very big files.
+
+If you're looking to not just compress your video or convert from one format to another, but actually edit it a bit, then look through the "Filter options" category. It has all the options to cut or stretch your video in both spacial and temporal dimensions.
+* Increasing the framerate will only make it worse unless you speed the video up, as there's no way to actually generate new frames from nothing.
+* Similarly, increasing the video resolution will only make it look worse, as there is nowhere to get extra information from to fill the extra space. (Unless you're trying to bypass YouTube's bitrate limits.)
+* But decreasing the video resolution generally also isn't necessary, even if you lower the bitrate.
 
 </div>
