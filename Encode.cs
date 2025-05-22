@@ -138,8 +138,7 @@ class Encode {
 			return totalProcessorTime;
 		}
 
-		ProcessStartInfo startInfo = new(Config.ffmpeg?.FullName ?? "ffmpeg", GetArguments());
-		Process ffmpegProcess = Process.Start(startInfo)!;
+		Process ffmpegProcess = Process.Start(Config.ffmpeg?.FullName ?? "ffmpeg", GetArguments());
 		ffmpegProcess.PriorityClass = Config.priority;
 		if (Config.cpuAffinity != 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())) {
 			ffmpegProcess.ProcessorAffinity = Config.cpuAffinity;

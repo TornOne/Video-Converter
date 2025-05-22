@@ -12,9 +12,8 @@ class Video {
 	public Video() { }
 
 	public Video(FileInfo file) {
-		ProcessStartInfo startInfo = new(Config.ffprobe?.FullName ?? "ffprobe", ["-hide_banner", "-of", "default=nw=1", "-select_streams", "v:0", "-show_entries", "stream=width,height,avg_frame_rate:format=duration", file.FullName]) {
-			RedirectStandardOutput = true,
-			RedirectStandardError = true
+		ProcessStartInfo startInfo = new(Config.ffprobe?.FullName ?? "ffprobe", ["-hide_banner", "-loglevel", "warning", "-of", "default=nw=1", "-select_streams", "v:0", "-show_entries", "stream=width,height,avg_frame_rate:format=duration", file.FullName]) {
+			RedirectStandardOutput = true
 		};
 		Process process = Process.Start(startInfo)!;
 		StreamReader stdout = process.StandardOutput;
