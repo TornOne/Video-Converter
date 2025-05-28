@@ -187,11 +187,13 @@ static class Program {
 
 		//Google's reference encoder defaults aren't very good at multithreading or producing fast decodable video - they need help.
 		if (Config.videoEncoder == aomav1) {
-			outArgs.Add("tiles", $"{GetTiles(input.width, false)}x{GetTiles(input.height, false)}");
-			outArgs.Add("g", Math.Min(input.fps * 12, 1440).ToString());
+			GetOutDimensions(input.width, input.height, out int w, out int h);
+			outArgs.Add("tiles", $"{GetTiles(w, false)}x{GetTiles(h, false)}");
+			outArgs.Add("g", Math.Min(input.fps * 12, 1440).ToString());	
 		} else if (Config.videoEncoder == vpxvp9) {
-			outArgs.Add("tile-rows", Math.Min(GetTiles(input.height, true), 2).ToString());
-			outArgs.Add("tile-columns", Math.Min(GetTiles(input.width, true), 6).ToString());
+			GetOutDimensions(input.width, input.height, out int w, out int h);
+			outArgs.Add("tile-rows", Math.Min(GetTiles(w, true), 2).ToString());
+			outArgs.Add("tile-columns", Math.Min(GetTiles(h, true), 6).ToString());
 		}
 		#endregion
 
@@ -410,5 +412,41 @@ static class Program {
 		}
 
 		return $"{bitsPerSecond.ToString("0." + new string('#', suffixIndex == 0 || bitsPerSecond >= 1000 ? 0 : bitsPerSecond >= 100 ? 1 : 2))}{(suffixIndex == 0 ? "" : suffixIndex == 1 ? "Ki" : suffixIndex == 2 ? "Mi" : "Gi")}";
+	}
+
+	static void GetOutDimensions(int inW, int inH, out int width, out int height) {
+		width = inW;
+		height = inH;
+
+		if (int.TryParse(Config.cropWidth, out int w)) {
+			width = w;
+		}
+		if (int.TryParse(Config.cropHeight, out int h)) {
+			height = h;
+		}
+
+		_ = int.TryParse(Config.width, out w);
+		_ = int.TryParse(Config.height, out h);
+
+		if (w <= 0 && h <= 0) {
+			return;
+		}
+
+		if (w == 0) {
+			w = width;
+		}
+		if (h == 0) {
+			h = height;
+		}
+
+		if (w < 0) {
+			w = System.Convert.ToInt32((double)width / height * h);
+		}
+		if (h < 0) {
+			h = System.Convert.ToInt32((double)height / width * w);
+		}
+
+		width = w;
+		height = h;
 	}
 }
