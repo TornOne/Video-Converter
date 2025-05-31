@@ -286,7 +286,7 @@ static class Program {
 		#endregion
 
 		#region Comparison
-		if (Config.compare == ssimulacra2) {
+		if (Config.compare == ssimulacra2 && !Config.simulate) {
 			Process comparer = Process.Start($"{AppContext.BaseDirectory}/ssimulacra2video.exe", [inputFile.FullName, output.FullName, "-n", Config.compareInterval.ToString()]);
 			comparer.PriorityClass = Config.priority;
 			comparer.WaitForExit();
