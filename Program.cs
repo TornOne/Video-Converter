@@ -54,10 +54,6 @@ static class Program {
 			filters.Add(Config.videoFilterPrepend);
 		}
 
-		if (Config.colorRange != "") {
-			filters.Add($"setrange={Config.colorRange}");
-		}
-
 		if (Config.startTime is not null) {
 			inArgs.Add("ss", FormatTimeSpan(Config.startTime.Value));
 		}
@@ -84,8 +80,20 @@ static class Program {
 			filters.Add($"crop={string.Join(':', cropOptions)}");
 		}
 
+		List<string> zscaleParams = [];
 		if (Config.width != "" || Config.height != "") {
-			filters.Add($"scale={(Config.width == "" ? "0" : Config.width)}:{(Config.height == "" ? "0" : Config.height)}");
+			zscaleParams.Add(Config.width == "" ? "0" : Config.width);
+			zscaleParams.Add(Config.height == "" ? "0" : Config.height);
+			zscaleParams.Add("f=spline36");
+		}
+		if (Config.colorRange != "" && Config.colorRange != input.colorRange) {
+			zscaleParams.Add($"r={Config.colorRange}");
+		}
+		if (zscaleParams.Count > 0) {
+			if (Config.dither) {
+				zscaleParams.Add("d=error_diffusion");
+			}
+			filters.Add($"zscale={string.Join(':', zscaleParams)}");
 		}
 
 		if (Config.blendFrames && input.realValues) {

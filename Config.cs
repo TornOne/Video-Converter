@@ -20,6 +20,7 @@ static partial class Config {
 
 	#region Filter options
 	public static string colorRange = "";
+	public static bool dither = false;
 	public static TimeSpan? startTime = null;
 	public static TimeSpan? endTime = null;
 	public static TimeSpan? duration = null;
@@ -106,6 +107,7 @@ static partial class Config {
 
 		#region Filter options
 		{ nameof(colorRange), value => colorRange = value },
+		{ nameof(dither), value => dither = bool.Parse(value) },
 		{ nameof(startTime), value => startTime = value == "" ? null : ParseTimeSpan(value) },
 		{ nameof(endTime), value => endTime = value == "" ? null : ParseTimeSpan(value) },
 		{ nameof(duration), value => duration = value == "" ? null : ParseTimeSpan(value) },
