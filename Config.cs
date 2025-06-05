@@ -52,6 +52,7 @@ static partial class Config {
 	public static string audioEncoder = "libopus";
 	public static string audioBitrate = "128Ki";
 	public static int? audioChannels = null;
+	public static double[] loudnessNorm = [];
 	#endregion
 
 	#region Other options
@@ -144,6 +145,7 @@ static partial class Config {
 		{ nameof(audioEncoder), name => audioEncoder = name },
 		{ nameof(audioBitrate), value => audioBitrate = value },
 		{ nameof(audioChannels), value => audioChannels = value == "" ? null : int.Parse(value) },
+		{ nameof(loudnessNorm), value => loudnessNorm = Array.ConvertAll(value.Split(' ', StringSplitOptions.RemoveEmptyEntries), double.Parse) },
 		#endregion
 
 		#region Other options

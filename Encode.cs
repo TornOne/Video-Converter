@@ -67,6 +67,8 @@ class Encode {
 
 		public bool Contains(string key) => args.Contains(key);
 
+		public bool TryGetValue(string key, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out string value) => argValues.TryGetValue(key, out value);
+
 		public ArgList CloneTo(ArgList clone) {
 			foreach (string arg in args) {
 				clone.Add(arg);

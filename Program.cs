@@ -251,7 +251,7 @@ static class Program {
 				? Config.outputDirectory
 				: new FileInfo(Path.Combine(Config.outputDirectory.FullName, Path.GetRelativePath(inputDirectory.Parent!.FullName, inputFile.FullName))).Directory!;
 
-			if (Config.createDirectoryIfNeeded) {
+			if (Config.createDirectoryIfNeeded && !Config.simulate) {
 				outputDirectory.Create();
 			} else if (!Config.outputDirectory.Exists) {
 				throw new Exception($"Output directory {outputDirectory.FullName} does not exist");
@@ -264,6 +264,42 @@ static class Program {
 			throw new Exception($"{output.Name} would overwrite an input file");
 		}
 		encode.outFile = output.FullName;
+		#endregion
+
+		#region Loudness normalization
+		if (Config.loudnessNorm.Length > 0 && !Config.simulate && Config.audioEncoder != "") {
+			string existingAudioFilter = outArgs.TryGetValue("af", out string? afValue) ? afValue + "," : "";
+			double targetGain = 0;
+			double headroom = 0;
+
+			List<string> loudnormArgs = ["-hide_banner", "-i", inputFile.FullName];
+			foreach (string key in (ReadOnlySpan<string>)["ss", "t"]) {
+				if (inArgs.TryGetValue(key, out string? value)) {
+					loudnormArgs.Add(key);
+					loudnormArgs.Add(value);
+				}
+			}
+			loudnormArgs.AddRange("-af", existingAudioFilter + "loudnorm=print_format=summary", "-vn", "-sn", "-map_metadata", "-1", "-map_chapters", "-1", "-f", "null", "-");
+			Process loudnorm = Process.Start(new ProcessStartInfo(Config.ffmpeg?.FullName ?? "ffmpeg", loudnormArgs) {
+				RedirectStandardError = true
+			})!;
+			loudnorm.PriorityClass = Config.priority;
+			StreamReader reader = loudnorm.StandardError;
+			while (true) {
+				string? line = reader.ReadLine();
+				if (line is null) {
+					break;
+				}
+
+				if (line.StartsWith("Input Integrated:")) {
+					targetGain = Config.loudnessNorm[0] - double.Parse(line.Split(' ', StringSplitOptions.RemoveEmptyEntries)[2]);
+					headroom = -double.Parse(reader.ReadLine()!.Split(' ', StringSplitOptions.RemoveEmptyEntries)[3]);
+				}
+			}
+			loudnorm.WaitForExit();
+
+			outArgs.Replace("af", existingAudioFilter + (targetGain < 1 || targetGain < headroom ? $"volume={targetGain:0.###}dB" : $"dynaudnorm={(Config.loudnessNorm.Length > 2 ? $"f={Config.loudnessNorm[2]}:" : "")}g={(Config.loudnessNorm.Length > 1 ? Config.loudnessNorm[1] : 49)}:p=1:m={targetGain:0.###}:b=true"), true);
+		}
 		#endregion
 
 		#region Two-pass
@@ -294,10 +330,16 @@ static class Program {
 		#endregion
 
 		#region Comparison
-		if (Config.compare == ssimulacra2 && !Config.simulate) {
-			Process comparer = Process.Start($"{AppContext.BaseDirectory}/ssimulacra2video.exe", [inputFile.FullName, output.FullName, "-n", Config.compareInterval.ToString()]);
-			comparer.PriorityClass = Config.priority;
-			comparer.WaitForExit();
+		if (Config.compare == ssimulacra2) {
+			string ssimu2Path = $"{AppContext.BaseDirectory}/ssimulacra2video.exe";
+			string[] ssimu2Args = [inputFile.FullName, output.FullName, "-n", Config.compareInterval.ToString()];
+			if (Config.simulate) {
+				Console.WriteLine(string.Join(' ', Array.ConvertAll([ssimu2Path, .. ssimu2Args], str => str.Contains(' ') ? $"\"{str}\"" : str)));
+			} else {
+				Process comparer = Process.Start(ssimu2Path, ssimu2Args);
+				comparer.PriorityClass = Config.priority;
+				comparer.WaitForExit();
+			}
 			Console.WriteLine();
 		} else if (Config.compare != "") {
 			Encode comparison = new();
