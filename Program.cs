@@ -275,11 +275,11 @@ static class Program {
 			List<string> loudnormArgs = ["-hide_banner", "-i", inputFile.FullName];
 			foreach (string key in (ReadOnlySpan<string>)["ss", "t"]) {
 				if (inArgs.TryGetValue(key, out string? value)) {
-					loudnormArgs.Add(key);
+					loudnormArgs.Add($"-{key}");
 					loudnormArgs.Add(value);
 				}
 			}
-			loudnormArgs.AddRange("-af", existingAudioFilter + "loudnorm=print_format=summary", "-vn", "-sn", "-map_metadata", "-1", "-map_chapters", "-1", "-f", "null", "-");
+			loudnormArgs.AddRange("-af", existingAudioFilter + "loudnorm=print_format=json", "-vn", "-sn", "-map_metadata", "-1", "-map_chapters", "-1", "-f", "null", "-");
 			Process loudnorm = Process.Start(new ProcessStartInfo(Config.ffmpeg?.FullName ?? "ffmpeg", loudnormArgs) {
 				RedirectStandardError = true
 			})!;
@@ -290,15 +290,20 @@ static class Program {
 				if (line is null) {
 					break;
 				}
+				if (line.StartsWith("size=N/A")) {
+					Console.Write(line);
+					Console.CursorLeft = 0;
+				}
 
-				if (line.StartsWith("Input Integrated:")) {
-					targetGain = Config.loudnessNorm[0] - double.Parse(line.Split(' ', StringSplitOptions.RemoveEmptyEntries)[2]);
-					headroom = -double.Parse(reader.ReadLine()!.Split(' ', StringSplitOptions.RemoveEmptyEntries)[3]);
+				if (line.Contains("\"input_i\"")) {
+					targetGain = Config.loudnessNorm[0] - double.Parse(line.Split(':', StringSplitOptions.RemoveEmptyEntries)[1].Trim(' ', '"', ','));
+					headroom = -double.Parse(reader.ReadLine()!.Split(':', StringSplitOptions.RemoveEmptyEntries)[1].Trim(' ', '"', ','));
 				}
 			}
 			loudnorm.WaitForExit();
+			Console.WriteLine();
 
-			outArgs.Replace("af", existingAudioFilter + (targetGain < 1 || targetGain < headroom ? $"volume={targetGain:0.###}dB" : $"dynaudnorm={(Config.loudnessNorm.Length > 2 ? $"f={Config.loudnessNorm[2]}:" : "")}g={(Config.loudnessNorm.Length > 1 ? Config.loudnessNorm[1] : 49)}:p=1:m={targetGain:0.###}:b=true"), true);
+			outArgs.Replace("af", existingAudioFilter + (targetGain <= 0 || targetGain <= headroom ? $"volume={targetGain:0.###}dB" : $"dynaudnorm=f={(Config.loudnessNorm.Length > 2 ? Config.loudnessNorm[2] : 100)}:g={(Config.loudnessNorm.Length > 1 ? Config.loudnessNorm[1] : 61)}:p=1:m={Math.Pow(10, targetGain / 20):0.###}:b=true"), true);
 		}
 		#endregion
 
