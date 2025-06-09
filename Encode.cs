@@ -7,6 +7,7 @@ class Encode {
 	public class ArgList {
 		readonly List<string> args = [];
 		readonly Dictionary<string, string> argValues = [];
+		public List<string> customArgs = [];
 
 		/// <summary>Adds an argument without a value.</summary>
 		/// <returns><see langword="false"/> if <paramref name="key"/> already exists, <see langword="true"/> otherwise.</returns>
@@ -87,6 +88,7 @@ class Encode {
 					fullArgs.Add(value);
 				}
 			}
+			fullArgs.AddRange(customArgs);
 			return fullArgs;
 		}
 	}

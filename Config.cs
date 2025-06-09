@@ -63,8 +63,8 @@ static partial class Config {
 	public static string compare = "";
 	public static int compareSync = 1;
 	public static int compareInterval = 1;
-	public static Dictionary<string, string> extraInputOptions = [];
-	public static Dictionary<string, string> extraOutputOptions = [];
+	public static List<string> extraInputOptions = [];
+	public static List<string> extraOutputOptions = [];
 	#endregion
 
 	#region CPU options
@@ -223,13 +223,14 @@ static partial class Config {
 	[GeneratedRegex("^(((?<hours>[0-9]+):)?(?<minutes>[0-9]+):)?(?<seconds>[0-9]+)(?<decimals>\\.[0-9]+)?$", RegexOptions.ExplicitCapture)]
 	private static partial Regex TimeRegex();
 
-	static Dictionary<string, string> ParseExtraOptions(string argString) {
-		Dictionary<string, string> options = [];
+	static List<string> ParseExtraOptions(string argString) {
+		List<string> options = [];
 		string key = "";
 		List<string> value = [];
 		void AddOption() {
 			if (key != "") {
-				options[key] = string.Join(' ', value);
+				options.Add(key);
+				options.Add(string.Join(' ', value));
 			}
 			value = [];
 		}
@@ -237,7 +238,7 @@ static partial class Config {
 		foreach (string arg in argString.Split(' ', StringSplitOptions.RemoveEmptyEntries)) {
 			if (arg[0] == '-') {
 				AddOption();
-				key = arg[1..];
+				key = arg;
 			} else {
 				value.Add(arg);
 			}

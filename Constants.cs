@@ -8,6 +8,8 @@
 // VVC: https://github.com/fraunhoferhhi/vvenc/wiki/Usage
 
 static class Constants {
+	public const string copy = "copy";
+
 	//Video codecs
 	public const string vpxvp9 = "libvpx-vp9";
 	public const string aomav1 = "libaom-av1";

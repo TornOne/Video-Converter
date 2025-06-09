@@ -132,6 +132,8 @@ static class Program {
 		#region Video options
 		if (Config.videoEncoder == "") {
 			outArgs.Add("vn");
+		} else if (Config.videoEncoder == copy) {
+			outArgs.Add("c:v", Config.videoEncoder);
 		} else {
 			outArgs.Add("c:v", Config.videoEncoder);
 
@@ -189,7 +191,7 @@ static class Program {
 			outArgs.Add("preset", $"p{7 - Config.speed}");
 		} else if (Config.videoEncoder.EndsWith(amf)) {
 			outArgs.Add("preset", (Config.videoEncoder.StartsWith("av1") ? Config.speed : Config.speed + 1) switch { 0 => "high_quality", 1 => "quality", 2 => "balanced", 3 => "speed", _ => throw new Exception("Invalid speed value for AMF encoder") });
-		} else if (Config.videoEncoder != "") {
+		} else if (Config.videoEncoder != "" && Config.videoEncoder != copy) {
 			outArgs.Add("preset", Config.speed.ToString());
 		}
 
@@ -208,13 +210,16 @@ static class Program {
 		#region Audio options
 		if (Config.audioEncoder == "") {
 			outArgs.Add("an");
+		} else if (Config.audioEncoder == copy) {
+			outArgs.Add("c:a", Config.audioEncoder);
 		} else {
 			outArgs.Add("c:a", Config.audioEncoder);
-			if (Config.audioEncoder != "copy" && Config.audioEncoder != flac) {
+
+			if (Config.audioEncoder != flac) {
 				outArgs.Add("b:a", Config.audioBitrate);
 			}
 
-			if (Config.audioChannels is not null && Config.audioEncoder != "copy") {
+			if (Config.audioChannels is not null) {
 				outArgs.Add("ac", Config.audioChannels.ToString()!);
 			}
 		}
@@ -240,8 +245,8 @@ static class Program {
 			outArgs.Add("map_chapters", "-1");
 		}
 
-		AddExtraOptions(Config.extraInputOptions, inArgs);
-		AddExtraOptions(Config.extraOutputOptions, outArgs);
+		inArgs.customArgs = Config.extraInputOptions;
+		outArgs.customArgs = Config.extraOutputOptions;
 		#endregion
 
 		#region Output file
@@ -251,10 +256,12 @@ static class Program {
 				? Config.outputDirectory
 				: new FileInfo(Path.Combine(Config.outputDirectory.FullName, Path.GetRelativePath(inputDirectory.Parent!.FullName, inputFile.FullName))).Directory!;
 
-			if (Config.createDirectoryIfNeeded && !Config.simulate) {
-				outputDirectory.Create();
-			} else if (!Config.outputDirectory.Exists) {
-				throw new Exception($"Output directory {outputDirectory.FullName} does not exist");
+			if (!Config.simulate) {
+				if (Config.createDirectoryIfNeeded) {
+					outputDirectory.Create();
+				} else if (!Config.outputDirectory.Exists) {
+					throw new Exception($"Output directory {outputDirectory.FullName} does not exist");
+				}
 			}
 		} else {
 			outputDirectory = inputFile.Directory!;
@@ -336,7 +343,7 @@ static class Program {
 
 		#region Comparison
 		if (Config.compare == ssimulacra2) {
-			string ssimu2Path = $"{AppContext.BaseDirectory}/ssimulacra2video.exe";
+			string ssimu2Path = $"{AppContext.BaseDirectory}ssimulacra2video.exe";
 			string[] ssimu2Args = [inputFile.FullName, output.FullName, "-n", Config.compareInterval.ToString()];
 			if (Config.simulate) {
 				Console.WriteLine(string.Join(' ', Array.ConvertAll([ssimu2Path, .. ssimu2Args], str => str.Contains(' ') ? $"\"{str}\"" : str)));
@@ -370,15 +377,6 @@ static class Program {
 			comparison.Start();
 		}
 		#endregion
-	}
-
-	static void AddExtraOptions(Dictionary<string, string> options, Encode.ArgList args) {
-		foreach (KeyValuePair<string, string> option in options) {
-			args.Add(option.Key);
-			if (option.Value != "") {
-				args.Replace(option.Key, option.Value);
-			}
-		}
 	}
 
 	static void AddNoOutputArgs(Encode encode) {
