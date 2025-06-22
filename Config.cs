@@ -240,7 +240,7 @@ static partial class Config {
 				AddOption();
 				key = arg;
 			} else {
-				value.Add(arg);
+				value.Add(arg[0] == '\\' ? arg[1..] : arg);
 			}
 		}
 		AddOption();
