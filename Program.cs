@@ -95,6 +95,9 @@ static class Program {
 			}
 			filters.Add($"zscale={string.Join(':', zscaleParams)}");
 		}
+		if (Config.width != "" || Config.height != "") {
+			filters.Add("setsar=1");
+		}
 
 		if (Config.blendFrames && input.realValues) {
 			float framerateMult = Config.framerate is null ? Config.tempo : (input.fps * Config.tempo / Config.framerate.Value);
@@ -120,11 +123,11 @@ static class Program {
 			filters.Add(Config.videoFilterAppend);
 		}
 
-		if (filters.Count > 0) {
+		if (Config.videoEncoder != "" && filters.Count > 0) {
 			outArgs.Add("vf", string.Join(',', filters));
 		}
 
-		if (Config.framerate is not null) {
+		if (Config.videoEncoder != "" && Config.framerate is not null) {
 			outArgs.Add("r:v", Config.framerate.Value.ToString());
 		}
 		#endregion
