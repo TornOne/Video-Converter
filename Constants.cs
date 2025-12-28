@@ -16,7 +16,6 @@ static class Constants {
 	public const string svtav1 = "libsvtav1";
 	public const string x265 = "libx265";
 	public const string x264 = "libx264";
-	public const string vvenc = "libvvenc";
 	public const string nvenc = "nvenc";
 	public const string amf = "amf";
 

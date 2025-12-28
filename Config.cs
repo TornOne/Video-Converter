@@ -39,7 +39,7 @@ static partial class Config {
 
 	#region Video options
 	public static string videoEncoder = Constants.svtav1;
-	public static string videoBitrate = "640KiB";
+	public static string videoBitrate = "";
 	public static string targetSize = "";
 	public static int? quality = 30;
 	public static int speed = 4;

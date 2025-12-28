@@ -159,9 +159,7 @@ static class Program {
 					throw new Exception($"Lossless mode not supported for {Config.videoEncoder}");
 				}
 			} else if (Config.quality is not null) {
-				if (Config.videoEncoder == vvenc) {
-					outArgs.Add("qp", Config.quality.ToString()!);
-				} else if (Config.videoEncoder.EndsWith(nvenc)) {
+				if (Config.videoEncoder.EndsWith(nvenc)) {
 					outArgs.Add("cq", Config.quality.ToString()!);
 				} else if (Config.videoEncoder.EndsWith(amf)) {
 					outArgs.Add("rc", "qvbr");
@@ -188,8 +186,6 @@ static class Program {
 			outArgs.Add("row-mt", "1");
 		} else if (Config.videoEncoder == x265 || Config.videoEncoder == x264) {
 			outArgs.Add("preset", (9 - Config.speed).ToString());
-		} else if (Config.videoEncoder == vvenc) {
-			outArgs.Add("preset", (4 - Config.speed).ToString());
 		} else if (Config.videoEncoder.EndsWith(nvenc)) {
 			outArgs.Add("preset", $"p{7 - Config.speed}");
 		} else if (Config.videoEncoder.EndsWith(amf)) {
