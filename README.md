@@ -33,10 +33,8 @@ If you switch back and forth between a few different encoding settings, make an 
 
 ## Help, I don't know anything about video encoding?
 Start by considering why you're encoding the video and maybe grab one of the sample configuration override files.
-* Just want to quickly share some video you recorded, but it's too big to upload to your favorite social media or communication platform? Have a graphics card in your computer?
-  * Grab the `Discord nvenc.cfg` sample. It's optimized for Discord, but should work for other similar places. There are comments inside on what you can change.
-* The above, but the maximum file size is small or you don't have a GPU?
-  * Grab the `Small VP9.cfg` sample. It's particularly good at hitting a specific target size.
+* Just want to quickly share some video you recorded, but it's too big to upload to your favorite social media or communication platform?
+  * Grab the `Limited size.cfg` sample. It's optimized for Discord, but should work for other similar places. There are comments inside on what you can change.
 * Want to store a video for a long time, or upload it to a lot of people? Compression is more important than how long it takes?
   * Grab the `Archive.cfg` sample. As always, there are comments inside.
 * Want to temporarily store a video as an intermediate step in some editing process?
