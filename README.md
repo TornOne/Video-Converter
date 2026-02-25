@@ -6,8 +6,8 @@ The goal is to heavily simplify the usage of ffmpeg, by offering fewer, more con
 
 ## Setup
 * Download and unzip one of the [latest releases](https://github.com/TornOne/Video-Converter/releases/latest).
-  * The default download is platform-independent, but requires .NET 9 installed. (Will probably work with similar .NET versions if you change the version in the .json file.)
-  * The "Win" option is a Windows-only executable that also requries .NET 9 to be installed.
+  * The default download is platform-independent, but requires .NET 10 installed. (Will probably work with similar .NET versions if you change the version in the .json file.)
+  * The "Win" option is a Windows-only executable that also requries .NET 10 to be installed.
   * The "Win Standalone" option is a Windows-only executable that does not require .NET to be installed.
 * Find a version of ffmpeg and ffprobe. (ffprobe is optional, but recommended)
   * [Some options here](https://ffmpeg.org/download.html)

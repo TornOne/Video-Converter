@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -453,7 +453,7 @@ static class Program {
 
 	static string GetTargetBitrate(TimeSpan duration) {
 		double bitsPerSecond = ParseBits(Config.targetSize, "target size") / duration.TotalSeconds;
-		if (Config.audioEncoder is not null) {
+		if (Config.audioEncoder != "") {
 			bitsPerSecond -= ParseBits(Config.audioBitrate, "audio bitrate");
 		}
 
